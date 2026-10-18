@@ -1,0 +1,1511 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1F5130">
+<meta name="mobile-web-app-capable" content="yes">
+<title>Lawn Bobs</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Zilla+Slab:wght@600;700&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --turf:#1F5130; --leaf:#3D8B3D; --sun:#F2C230; --paper:#F4F7F1; --card:#FFFFFF;
+  --ink:#17231A; --muted:#5B6B5E; --line:#DCE5D8; --danger:#A33B2B; --chip:#EAF0E6; --head:#1F5130;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --turf:#2C6B40; --leaf:#5FB25F; --paper:#101812; --card:#18231B;
+    --ink:#EAF1E8; --muted:#9DB0A0; --line:#2A3A2E; --danger:#E0725F; --chip:#1F2C22; --head:#5FB25F; color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --turf:#2C6B40; --leaf:#5FB25F; --paper:#101812; --card:#18231B;
+  --ink:#EAF1E8; --muted:#9DB0A0; --line:#2A3A2E; --danger:#E0725F; --chip:#1F2C22; --head:#5FB25F; color-scheme:dark;
+}
+*,*::before,*::after{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%;scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.5 "Work Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-tap-highlight-color:transparent}
+[hidden]{display:none!important}
+button,input,select,textarea{font:inherit;color:inherit}
+a{color:inherit}
+.wrap{max-width:640px;margin:0 auto;padding:calc(12px + env(safe-area-inset-top,0px)) 16px calc(100px + env(safe-area-inset-bottom,0px))}
+
+/* header */
+.patch{background:var(--turf);color:#fff;border-radius:18px;padding:16px 16px 16px 20px;outline:2px dashed rgba(242,194,48,.85);outline-offset:-8px;display:flex;align-items:center;gap:12px}
+.ptxt{flex:1;min-width:0}
+.patch h1{margin:0;font:700 1.55rem/1.1 "Zilla Slab",Georgia,serif}
+.patch p{margin:2px 0 0;font-size:.88rem;opacity:.85;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tally{text-align:right;flex-shrink:0}
+.tally b{display:block;font:700 1.8rem/1 "Zilla Slab",Georgia,serif;color:var(--sun)}
+.tally span{font-size:.78rem;opacity:.85}
+.gear{background:rgba(255,255,255,.12);border:0;border-radius:12px;width:44px;height:44px;display:grid;place-items:center;cursor:pointer;flex-shrink:0;color:#fff}
+.gear svg{width:22px;height:22px}
+
+/* bottom nav */
+.bnav{position:fixed;left:0;right:0;bottom:0;z-index:10;background:var(--card);border-top:1.5px solid var(--line);display:flex;justify-content:center;padding:6px 6px calc(6px + env(safe-area-inset-bottom,0px))}
+.bnav .in{display:flex;width:100%;max-width:640px}
+.bnav button{flex:1;min-width:0;border:0;background:none;color:var(--muted);display:grid;justify-items:center;gap:2px;padding:6px 2px;border-radius:12px;cursor:pointer;font:600 .72rem "Work Sans",sans-serif}
+.bnav svg{width:24px;height:24px}
+.bnav button[aria-selected="true"]{color:var(--turf);background:var(--chip)}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .bnav button[aria-selected="true"]{color:var(--leaf)}}
+:root[data-theme="dark"] .bnav button[aria-selected="true"]{color:var(--leaf)}
+
+/* shared bits */
+h2{font:700 1.15rem "Zilla Slab",Georgia,serif;margin:22px 0 8px;color:var(--head)}
+ul{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.btn{font:600 1rem "Work Sans",sans-serif;border:0;border-radius:12px;padding:11px 16px;cursor:pointer;background:var(--sun);color:#1b1b1b;flex-shrink:0;min-height:44px}
+.btn.green{background:var(--leaf);color:#fff}
+.btn.wide{width:100%}
+.link{background:var(--card);border:1.5px solid var(--line);color:var(--ink);border-radius:10px;padding:8px 12px;font:500 .9rem "Work Sans",sans-serif;cursor:pointer;min-height:40px;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;gap:6px}
+.link svg{width:18px;height:18px}
+.link.danger{color:var(--danger)}
+:focus-visible{outline:3px solid var(--sun);outline-offset:2px}
+.empty{color:var(--muted);background:var(--card);border:1.5px dashed var(--line);border-radius:14px;padding:16px;text-align:center}
+.csum{color:var(--muted);font-size:.88rem;margin:12px 2px 8px}
+.badge{font-size:.72rem;font-weight:600;border-radius:999px;padding:2px 9px;flex-shrink:0;background:var(--sun);color:#1b1b1b;white-space:nowrap}
+.badge.freq{background:var(--leaf);color:#fff}
+.badge.freq.bi{background:var(--turf)}
+.badge.inactive,.badge.unpaid{background:#C62828;color:#fff}
+.badge.paid,.badge.st-accepted{background:var(--leaf);color:#fff}
+.badge.st-draft{background:var(--line);color:var(--muted)}
+.badge.st-declined{background:#C62828;color:#fff}
+.add,.cform{background:var(--card);border:1.5px solid var(--line);border-radius:14px;padding:12px;margin-top:12px;display:grid;gap:8px}
+.add .row,.cform .row{display:flex;gap:8px}
+.add input,.add select,.add textarea,.cform input,.cform select,.cform textarea,.sheet input,.sheet select,.sheet textarea{color:var(--ink);background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:10px 12px;min-width:0;width:100%;min-height:44px}
+textarea{resize:vertical}
+.price{max-width:100px}
+.flabel{font-size:.82rem;font-weight:600;color:var(--muted);margin-top:4px}
+.ferr{color:var(--danger);font-size:.88rem;margin:0}
+.ferr:empty{display:none}
+.cfilters{display:flex;gap:6px;margin-top:12px;flex-wrap:wrap}
+.chip{border:1.5px solid var(--line);background:var(--card);color:var(--ink);border-radius:999px;padding:7px 14px;font:600 .9rem "Work Sans",sans-serif;cursor:pointer;display:inline-flex;gap:6px;align-items:center;min-height:38px}
+.chip .n{font-size:.75rem;background:var(--paper);border-radius:999px;padding:0 7px;color:var(--muted)}
+.chip[aria-pressed="true"]{background:var(--leaf);border-color:var(--leaf);color:#fff}
+.chip[aria-pressed="true"] .n{background:rgba(255,255,255,.22);color:#fff}
+.chip.today:not([aria-pressed="true"]){border-color:var(--leaf)}
+.search{width:100%;color:var(--ink);background:var(--card);border:1.5px solid var(--line);border-radius:12px;padding:11px 14px;margin-top:14px;min-height:46px}
+.x{background:none;border:0;color:var(--muted);font-size:1.3rem;line-height:1;cursor:pointer;padding:8px;border-radius:8px;min-width:40px;min-height:40px}
+
+/* banner */
+.banner{margin-top:12px;background:var(--card);border:1.5px solid var(--sun);border-radius:14px;padding:12px;display:grid;gap:8px}
+.banner p{margin:0;font-size:.92rem}
+.banner .row{display:flex;gap:8px;flex-wrap:wrap}
+
+/* jobs */
+.wknav{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:14px}
+.wknav .link{min-width:48px;font-size:1.3rem;padding:4px 10px}
+.wkt{text-align:center;display:grid}
+.wkt strong{font:700 1.05rem "Zilla Slab",Georgia,serif}
+.wkt button{background:none;border:0;color:var(--muted);font-size:.82rem;cursor:pointer;padding:0}
+.days{display:flex;gap:6px;overflow-x:auto;margin:12px -16px 0;padding:2px 16px 6px;scrollbar-width:none}
+.days::-webkit-scrollbar{display:none}
+.days .chip{flex:0 0 auto}
+.jtools{display:flex;gap:8px;margin-top:10px}
+.jtools .link{flex:1}
+.dayh{display:flex;justify-content:space-between;align-items:center;gap:8px;margin:22px 0 8px}
+.dayh h2{margin:0}
+.job{background:var(--card);border:1.5px solid var(--line);border-radius:14px;padding:12px;display:grid;gap:10px;transition:opacity .35s ease,transform .35s ease}
+.job.leaving{opacity:0;transform:translateX(40px)}
+.jtop{display:flex;align-items:flex-start;gap:12px}
+.check{width:46px;height:46px;border-radius:50%;border:2.5px solid var(--leaf);background:transparent;flex-shrink:0;cursor:pointer;display:grid;place-items:center;padding:0}
+.check svg{width:24px;height:24px;stroke:var(--turf);stroke-width:3.5;fill:none;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:30;stroke-dashoffset:30;transition:stroke-dashoffset .3s ease}
+.job.done .check{background:var(--sun);border-color:var(--sun)}
+.job.done .check svg{stroke-dashoffset:0}
+.job.done .name{text-decoration:line-through;color:var(--muted)}
+.info{flex:1;min-width:0}
+.name{font-weight:600;overflow-wrap:anywhere}
+.tag{font:600 .68rem "Work Sans",sans-serif;background:var(--chip);color:var(--muted);border-radius:999px;padding:1px 7px;margin-left:6px;vertical-align:2px}
+.addr{display:block;font-size:.9rem;color:var(--leaf);text-decoration:none;overflow-wrap:anywhere}
+.detail{font-size:.88rem;color:var(--muted);overflow-wrap:anywhere}
+.amt{font-weight:600;color:var(--leaf);flex-shrink:0}
+.jacts{display:flex;gap:6px}
+.act{flex:1;min-width:0;display:flex;align-items:center;justify-content:center;gap:4px;border:1.5px solid var(--line);background:var(--paper);color:var(--ink);border-radius:10px;padding:8px 3px;font:600 .78rem "Work Sans",sans-serif;cursor:pointer;text-decoration:none;min-height:42px}
+.act svg{width:18px;height:18px;flex-shrink:0}
+.act span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.act.more{flex:0 0 42px}
+.act.compact{flex:0 0 auto;padding:8px 12px}
+.act.on{background:var(--sun);border-color:var(--sun);color:#1b1b1b}
+.act.go{background:var(--leaf);border-color:var(--leaf);color:#fff}
+.tools{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.tools button{border:1.5px solid var(--line);background:var(--card);border-radius:10px;padding:8px 4px;font:600 .82rem "Work Sans",sans-serif;cursor:pointer;min-height:42px}
+.tools button.danger{color:var(--danger)}
+.tools button:disabled{opacity:.4}
+.panel{display:grid;gap:8px}
+.panel label{display:grid;gap:3px;font-size:.8rem;font-weight:600;color:var(--muted)}
+.panel input{color:var(--ink);background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:10px 12px;min-width:0;width:100%;font-weight:400;font-size:1rem;min-height:44px}
+.panel .row{display:flex;gap:8px;align-items:flex-end}
+.mvlabel{font-size:.8rem;color:var(--muted);font-weight:600}
+.moverow{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.mday{border:1.5px solid var(--leaf);background:transparent;color:var(--ink);border-radius:8px;padding:6px 0;font:600 .78rem "Work Sans",sans-serif;cursor:pointer;display:grid;line-height:1.2}
+.mday b{font-size:.95rem}
+.mday:disabled{background:var(--leaf);color:#fff;opacity:.55;cursor:default}
+.extras{list-style:none;margin:4px 0 0;padding:0;display:grid;gap:2px;font-size:.86rem}
+.extras li{display:flex;align-items:center;gap:6px}
+.extras b{color:var(--leaf);font-weight:600}
+.xrm{background:none;border:0;color:var(--muted);font-size:1rem;cursor:pointer;padding:2px 8px}
+.daytotal{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-top:8px;padding:8px 12px;border-radius:10px;background:var(--chip);font-size:.9rem}
+.daytotal small{color:var(--muted);font-size:.8rem}
+.foot{margin-top:28px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;color:var(--muted);font-size:.85rem}
+
+/* clients */
+.client,.quote{background:var(--card);border:1.5px solid var(--line);border-radius:14px;padding:14px}
+.client .top,.quote .top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.cn,.qn{font:700 1.08rem "Zilla Slab",Georgia,serif;overflow-wrap:anywhere}
+.co,.qmeta{font-size:.85rem;color:var(--muted)}
+.client.off{opacity:.75}
+.sched{font-size:.88rem;margin-top:6px;color:var(--ink)}
+.sched.warn{color:var(--danger)}
+.props{margin:6px 0 0;padding:0;list-style:none;display:grid;gap:2px;font-size:.9rem;color:var(--muted)}
+.props b{color:var(--ink);font-weight:600}
+.cnote{font-size:.85rem;color:var(--muted);margin-top:4px;font-style:italic}
+.acts{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+.acts .link.call{background:var(--leaf);border-color:var(--leaf);color:#fff}
+.gcount{font:600 .8rem "Work Sans",sans-serif;color:var(--muted);margin-left:4px}
+.prow{display:grid;grid-template-columns:7em 1fr auto;gap:6px;align-items:center}
+.addclient{width:100%;margin-top:14px}
+
+/* quotes / invoices */
+.qrow{display:grid;grid-template-columns:1fr 92px auto;gap:6px;align-items:center}
+.qtotal{display:flex;justify-content:space-between;align-items:baseline;padding:10px 12px;border-radius:10px;background:var(--paper);font-weight:600}
+.qtotal b{font:700 1.3rem "Zilla Slab",Georgia,serif;color:var(--leaf)}
+.qamt{font:700 1.2rem "Zilla Slab",Georgia,serif;color:var(--leaf);text-align:right}
+.qlines{list-style:none;margin:8px 0 0;padding:0;font-size:.9rem;display:grid;gap:2px}
+.qlines li{display:flex;justify-content:space-between;gap:8px}
+.ujobs{display:grid;gap:4px;background:var(--paper);border-radius:10px;padding:8px 10px}
+.ujobs label{display:flex;gap:8px;align-items:center;font-size:.9rem;min-height:36px}
+.ujobs input{width:20px;height:20px;min-height:0;flex-shrink:0}
+
+/* books */
+.pnav{display:flex;align-items:center;justify-content:space-between;margin-top:12px;gap:8px}
+.pnav strong{font:700 1.05rem "Zilla Slab",Georgia,serif;text-align:center}
+.pnav .link{min-width:48px;font-size:1.2rem}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}
+.stat{background:var(--card);border:1.5px solid var(--line);border-radius:14px;padding:10px 12px;min-width:0}
+.stat span{display:block;font-size:.78rem;color:var(--muted)}
+.stat b{font:700 1.2rem "Zilla Slab",Georgia,serif;overflow-wrap:anywhere}
+.stat.net{background:var(--turf);border-color:var(--turf);color:#fff}
+.stat.net span{color:rgba(255,255,255,.8)}
+.stat.net b{color:var(--sun)}
+.owed{width:100%;margin-top:8px;display:flex;justify-content:space-between;align-items:center;background:var(--card);border:1.5px solid var(--line);border-radius:14px;padding:12px;cursor:pointer;color:var(--ink);text-align:left}
+.owed b{color:var(--danger);font:700 1.1rem "Zilla Slab",Georgia,serif}
+.goal{background:var(--card);border:1.5px solid var(--line);border-radius:14px;padding:12px;margin-top:8px}
+.goalrow{display:flex;justify-content:space-between;gap:8px;font-size:.88rem;align-items:center}
+.goalrow.sub{margin-top:10px;color:var(--muted)}
+.goalrow.sub b{color:var(--ink)}
+.bar{height:10px;border-radius:999px;background:var(--paper);margin-top:6px;overflow:hidden}
+.bar i{display:block;height:100%;width:0;background:var(--leaf);border-radius:999px;transition:width .4s ease}
+.entry{background:var(--card);border:1.5px solid var(--line);border-radius:12px;padding:9px 10px;display:flex;flex-wrap:wrap;align-items:center;gap:6px}
+.entry .info{flex-basis:100%}
+.entry .amt{flex:1}
+.amt.out{color:var(--danger)}
+.catrow{display:grid;grid-template-columns:7.5em 1fr auto;gap:8px;align-items:center;font-size:.88rem;margin-top:6px}
+.catrow .bar{margin-top:0}
+.catrow .bar i{background:var(--danger)}
+.ecols{display:grid;grid-template-columns:1fr 1fr;gap:10px;align-items:start}
+.ecol{min-width:0}
+.ehead{display:flex;justify-content:space-between;align-items:baseline;gap:6px;margin:0 0 8px;padding:8px 10px;border-radius:10px;font:700 .95rem "Zilla Slab",Georgia,serif;color:#fff}
+.ehead.in{background:var(--leaf)}
+.ehead.out{background:var(--danger)}
+.ehead span{font:600 .85rem "Work Sans",sans-serif}
+@media (max-width:360px){.ecols{grid-template-columns:1fr}}
+
+/* sheets & dialogs */
+.sheetbg,.askbg{position:fixed;inset:0;background:rgba(10,20,12,.55);z-index:30;display:flex;align-items:flex-end;justify-content:center}
+.askbg{align-items:center;padding:16px;z-index:40}
+.sheet{background:var(--card);width:100%;max-width:640px;max-height:92vh;overflow:auto;border-radius:20px 20px 0 0;padding:18px 16px calc(20px + env(safe-area-inset-bottom,0px));display:grid;gap:10px;align-content:start}
+.sheet h3{margin:0;font:700 1.25rem "Zilla Slab",Georgia,serif}
+.sheet .sub{margin:0;color:var(--muted);font-size:.9rem}
+.sheet .shead{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.sheet .sec{font:700 1rem "Zilla Slab",Georgia,serif;color:var(--head);margin:10px 0 0}
+.sheet .grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.sheet .note{font-size:.82rem;color:var(--muted);margin:0}
+.sheet .chk{display:flex;gap:8px;align-items:center;font-size:.92rem}
+.sheet .chk input{width:20px;height:20px;min-height:0}
+.bigbtn{display:flex;align-items:center;gap:12px;width:100%;text-align:left;border:1.5px solid var(--line);background:var(--paper);border-radius:14px;padding:12px 14px;cursor:pointer;color:var(--ink);text-decoration:none;min-height:56px}
+.bigbtn svg{width:24px;height:24px;color:var(--leaf);flex-shrink:0}
+.bigbtn b{display:block;font-weight:600}
+.bigbtn small{color:var(--muted);font-size:.82rem}
+.bigbtn:disabled{opacity:.45}
+.paygrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.paygrid button{border:1.5px solid var(--line);background:var(--paper);border-radius:12px;padding:12px 4px;font:600 .9rem "Work Sans",sans-serif;cursor:pointer;min-height:50px}
+.pgroup{display:grid;gap:6px}
+.thumbs{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.thumbs button{padding:0;border:0;border-radius:10px;overflow:hidden;aspect-ratio:1;background:var(--paper);cursor:pointer}
+.thumbs img{width:100%;height:100%;object-fit:cover;display:block}
+.thumbs .addph{border:1.5px dashed var(--leaf);color:var(--leaf);font:600 .85rem "Work Sans",sans-serif;display:grid;place-items:center;align-content:center;gap:4px}
+.thumbs .addph svg{width:26px;height:26px}
+.bigphoto{width:100%;border-radius:12px;display:block;max-height:65vh;object-fit:contain;background:#000}
+.logoprev{width:130px;height:64px;border:1.5px dashed var(--line);border-radius:10px;display:grid;place-items:center;font-size:.75rem;color:var(--muted);overflow:hidden;background:#fff}
+.logoprev img{max-width:100%;max-height:100%}
+.askbox{background:var(--card);color:var(--ink);border-radius:16px;padding:18px;max-width:380px;width:100%;display:grid;gap:14px}
+.askbox p{margin:0}
+.askbox .row{display:flex;gap:8px;justify-content:flex-end}
+.toast{position:fixed;left:50%;bottom:calc(84px + env(safe-area-inset-bottom,0px));transform:translate(-50%,40px);opacity:0;pointer-events:none;background:var(--ink);color:var(--paper);border-radius:12px;padding:10px 14px;display:flex;gap:14px;align-items:center;transition:transform .25s ease,opacity .25s ease;max-width:calc(100% - 32px);z-index:50}
+.toast.show{transform:translate(-50%,0);opacity:1;pointer-events:auto}
+.toast button{background:none;border:0;color:var(--sun);font:600 .95rem "Work Sans",sans-serif;cursor:pointer;min-height:36px}
+.toast button:empty{display:none}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="patch">
+    <div class="ptxt"><h1>Lawn Bobs</h1><p id="hdrSub"></p></div>
+    <div class="tally"><b id="tallyBig">0</b><span id="tallySmall">done</span></div>
+    <button class="gear" id="openSettings" aria-label="Settings"></button>
+  </header>
+  <div id="banner"></div>
+
+  <!-- WEEKLY JOBS -->
+  <section id="p-jobs">
+    <div class="wknav">
+      <button class="link" id="wPrev" aria-label="Previous week">‹</button>
+      <div class="wkt"><strong id="wRange"></strong><button id="wSub" type="button"></button></div>
+      <button class="link" id="wNext" aria-label="Next week">›</button>
+    </div>
+    <nav class="days" id="days" aria-label="Pick a day"></nav>
+    <div class="jtools"><button class="link" id="jAddOpen">+ Add a job</button></div>
+    <div class="add" id="jForm" hidden>
+      <input id="jName" list="clientNames" placeholder="Client or job name *" aria-label="Client or job name" maxlength="80" autocomplete="off">
+      <input id="jAddr" placeholder="Address" aria-label="Address" maxlength="140">
+      <div class="row">
+        <input id="jSvc" list="svcList" placeholder="Service (e.g. Lawn maintenance)" aria-label="Service" maxlength="100">
+        <input id="jPrice" class="price" inputmode="decimal" placeholder="$" aria-label="Price" maxlength="8">
+      </div>
+      <div class="row">
+        <select id="jDay" aria-label="Day"></select>
+        <button class="btn" id="jAdd">Add</button>
+        <button class="link" id="jCancel" type="button">Cancel</button>
+      </div>
+    </div>
+    <div id="lists"></div>
+    <div class="foot">
+      <span id="status">Saved on this phone</span>
+      <button class="link" id="clearWeek">Clear this week</button>
+    </div>
+  </section>
+
+  <!-- CLIENTS -->
+  <section id="p-clients" hidden>
+    <button class="btn addclient" id="cOpen">+ Add new client</button>
+    <div class="cform" id="cForm" hidden>
+      <h2 id="cFormTitle" style="margin:2px 0 4px">New client</h2>
+      <input id="cName" placeholder="Full name *" aria-label="Full name" maxlength="80">
+      <input id="cCo" placeholder="Company (optional)" aria-label="Company" maxlength="80">
+      <div class="row">
+        <input id="cPh" type="tel" inputmode="tel" placeholder="Phone" aria-label="Phone" maxlength="20">
+        <input id="cEm" type="email" inputmode="email" placeholder="Email" aria-label="Email" maxlength="100">
+      </div>
+      <span class="flabel">Property address(es)</span>
+      <div id="cProps" style="display:grid;gap:6px"></div>
+      <button class="link" id="cAddProp" type="button">+ Add another property</button>
+      <label class="flabel" for="cG">Service schedule</label>
+      <select id="cG">
+        <option value="weekly">Weekly</option>
+        <option value="biweekly">Bi-weekly (every other week)</option>
+        <option value="none">Unscheduled</option>
+        <option value="inactive">Inactive</option>
+      </select>
+      <div id="cSched" style="display:grid;gap:8px">
+        <div class="row">
+          <div style="flex:1;display:grid;gap:3px"><label class="flabel" for="cDay">Route day</label><select id="cDay"></select></div>
+          <div style="flex:1;display:grid;gap:3px"><label class="flabel" for="cStart" id="cStartLbl">Next mow date</label><input id="cStart" type="date"></div>
+        </div>
+        <div class="row">
+          <input id="cSvc" list="svcList" placeholder="Service (e.g. Lawn maintenance)" aria-label="Service" maxlength="100">
+          <input id="cPrice" class="price" inputmode="decimal" placeholder="$/visit" aria-label="Price per visit" maxlength="8">
+        </div>
+        <p class="csum" style="margin:0" id="cSchedHint"></p>
+      </div>
+      <input id="cNotes" placeholder="Notes (gate code, dog, call don't text…)" aria-label="Notes" maxlength="200">
+      <p class="ferr" id="cErr" role="alert"></p>
+      <div class="row">
+        <button class="btn" id="cSave">Save client</button>
+        <button class="link" id="cCancel" type="button">Cancel</button>
+      </div>
+    </div>
+    <input class="search" id="csearch" type="search" placeholder="Search name, street, city, or phone" aria-label="Search clients">
+    <div class="cfilters" id="cfilters">
+      <button class="chip" data-f="all" aria-pressed="true">All</button>
+      <button class="chip" data-f="weekly" aria-pressed="false">Weekly</button>
+      <button class="chip" data-f="biweekly" aria-pressed="false">Bi-weekly</button>
+      <button class="chip" data-f="none" aria-pressed="false">Unscheduled</button>
+      <button class="chip" data-f="inactive" aria-pressed="false">Inactive</button>
+    </div>
+    <p class="csum" id="csum"></p>
+    <ul id="clist"></ul>
+  </section>
+
+  <!-- QUOTES -->
+  <section id="p-quotes" hidden>
+    <button class="btn addclient" id="qOpen">+ New quote</button>
+    <div class="cform" id="qForm" hidden>
+      <h2 id="qFormTitle" style="margin:2px 0 4px">New quote</h2>
+      <input id="qClient" list="clientNames" placeholder="Pick a client or type a new name *" aria-label="Client" maxlength="80" autocomplete="off">
+      <div class="row">
+        <input id="qPh" type="tel" inputmode="tel" placeholder="Phone" aria-label="Phone" maxlength="20">
+        <input id="qEm" type="email" inputmode="email" placeholder="Email" aria-label="Email" maxlength="100">
+      </div>
+      <input id="qAddr" placeholder="Service address" aria-label="Service address" maxlength="140">
+      <div class="row">
+        <div style="flex:1;display:grid;gap:3px"><label class="flabel" for="qFreq">Service type</label>
+          <select id="qFreq"><option value="once">One-time job</option><option value="weekly">Weekly (per visit)</option><option value="biweekly">Bi-weekly (per visit)</option></select></div>
+        <div style="flex:1;display:grid;gap:3px"><label class="flabel" for="qValid">Valid until</label><input id="qValid" type="date"></div>
+      </div>
+      <span class="flabel">Services</span>
+      <div id="qItems" style="display:grid;gap:6px"></div>
+      <button class="link" id="qAddItem" type="button">+ Add service line</button>
+      <div class="qtotal">Total <b id="qTotal">$0</b></div>
+      <textarea id="qNotes" rows="3" maxlength="600" placeholder="Notes for the client (scope, what's included, timing)" aria-label="Notes"></textarea>
+      <p class="ferr" id="qErr" role="alert"></p>
+      <div class="row">
+        <button class="btn" id="qSave">Save quote</button>
+        <button class="link" id="qCancel" type="button">Cancel</button>
+      </div>
+    </div>
+    <div class="cfilters" id="qfilters">
+      <button class="chip" data-q="open" aria-pressed="true">Open</button>
+      <button class="chip" data-q="accepted" aria-pressed="false">Accepted</button>
+      <button class="chip" data-q="declined" aria-pressed="false">Declined</button>
+      <button class="chip" data-q="all" aria-pressed="false">All</button>
+    </div>
+    <p class="csum" id="qsum"></p>
+    <ul id="qlist"></ul>
+  </section>
+
+  <!-- INVOICES -->
+  <section id="p-invoices" hidden>
+    <button class="btn addclient" id="iOpen">+ New invoice</button>
+    <div class="cform" id="iForm" hidden>
+      <h2 id="iFormTitle" style="margin:2px 0 4px">New invoice</h2>
+      <input id="iClient" list="clientNames" placeholder="Pick a client or type a name *" aria-label="Client" maxlength="80" autocomplete="off">
+      <div class="row">
+        <input id="iPh" type="tel" inputmode="tel" placeholder="Phone" aria-label="Phone" maxlength="20">
+        <input id="iEm" type="email" inputmode="email" placeholder="Email" aria-label="Email" maxlength="100">
+      </div>
+      <input id="iAddr" placeholder="Service address" aria-label="Service address" maxlength="140">
+      <div class="row"><div style="flex:1;display:grid;gap:3px"><label class="flabel" for="iDate">Invoice date</label><input id="iDate" type="date"></div></div>
+      <div id="iJobsWrap" hidden><span class="flabel">Finished jobs not billed yet</span><div class="ujobs" id="iJobs"></div></div>
+      <span class="flabel">Line items</span>
+      <div id="iItems" style="display:grid;gap:6px"></div>
+      <button class="link" id="iAddItem" type="button">+ Add line</button>
+      <div class="qtotal">Total <b id="iTotal">$0</b></div>
+      <textarea id="iNotes" rows="2" maxlength="400" placeholder="Note on the invoice (optional)" aria-label="Notes"></textarea>
+      <p class="ferr" id="iErr" role="alert"></p>
+      <div class="row">
+        <button class="btn" id="iSave">Save invoice</button>
+        <button class="link" id="iCancel" type="button">Cancel</button>
+      </div>
+    </div>
+    <div class="cfilters" id="ifilters">
+      <button class="chip" data-i="unpaid" aria-pressed="true">Unpaid</button>
+      <button class="chip" data-i="paid" aria-pressed="false">Paid</button>
+      <button class="chip" data-i="all" aria-pressed="false">All</button>
+    </div>
+    <p class="csum" id="isum"></p>
+    <ul id="ilist"></ul>
+  </section>
+
+  <!-- BOOKS -->
+  <section id="p-books" hidden>
+    <div class="cfilters" id="bperiod">
+      <button class="chip" data-p="week" aria-pressed="true">Week</button>
+      <button class="chip" data-p="month" aria-pressed="false">Month</button>
+      <button class="chip" data-p="year" aria-pressed="false">Year</button>
+    </div>
+    <div class="pnav">
+      <button class="link" id="bprev" aria-label="Previous period">‹</button>
+      <strong id="blabel"></strong>
+      <button class="link" id="bnext" aria-label="Next period">›</button>
+    </div>
+    <div class="stats">
+      <div class="stat"><span>Earned</span><b id="sIn">$0</b></div>
+      <div class="stat"><span>Expenses</span><b id="sOut">$0</b></div>
+      <div class="stat net"><span>Net profit</span><b id="sNet">$0</b></div>
+    </div>
+    <button class="owed" id="owedBtn" hidden><span id="owedTxt"></span><b id="owedAmt"></b></button>
+    <div class="goal">
+      <div class="goalrow"><span id="goalLabel"></span><span id="goalPct"></span></div>
+      <div class="bar"><i id="goalBar"></i></div>
+      <div class="goalrow sub"><span>Set aside for taxes (<span id="taxPctTxt"></span>%)</span><b id="sTax">$0</b></div>
+    </div>
+    <h2>Add an entry</h2>
+    <div class="add">
+      <div class="cfilters" id="etype" style="margin-top:0">
+        <button class="chip" data-t="income" aria-pressed="true">Earning</button>
+        <button class="chip" data-t="expense" aria-pressed="false">Expense</button>
+      </div>
+      <div class="row">
+        <input id="eAmt" inputmode="decimal" placeholder="$ Amount" aria-label="Amount" maxlength="10">
+        <input id="eDate" type="date" aria-label="Date">
+      </div>
+      <select id="eCat" aria-label="Category"></select>
+      <div class="row">
+        <input id="eNote" placeholder="Note (customer, store, what for)" aria-label="Note" maxlength="120">
+        <button class="btn" id="eAdd">Add</button>
+      </div>
+    </div>
+    <div id="bcats"></div>
+    <h2>Entries</h2>
+    <div class="ecols">
+      <div class="ecol"><h3 class="ehead in">Earned <span id="cIn"></span></h3><ul id="listIn"></ul></div>
+      <div class="ecol"><h3 class="ehead out">Expenses <span id="cOut"></span></h3><ul id="listOut"></ul></div>
+    </div>
+    <p class="csum">Checking off a job logs it here as an earning automatically. Undo removes it. Invoices you write by hand log their earning when you mark them paid.</p>
+    <button class="link" id="exportCsv" style="margin-top:6px">Export this period (spreadsheet)</button>
+  </section>
+</div>
+
+<nav class="bnav" aria-label="Sections"><div class="in" role="tablist">
+  <button role="tab" data-tab="jobs" aria-selected="true"></button>
+  <button role="tab" data-tab="clients" aria-selected="false"></button>
+  <button role="tab" data-tab="quotes" aria-selected="false"></button>
+  <button role="tab" data-tab="invoices" aria-selected="false"></button>
+  <button role="tab" data-tab="books" aria-selected="false"></button>
+</div></nav>
+
+<datalist id="clientNames"></datalist>
+<datalist id="svcList"><option value="Lawn maintenance"><option value="Mow, edge, trim, blow"><option value="Hedge trim"><option value="Bed cleanup"><option value="Weed pulling"><option value="Leaf cleanup"><option value="Mulch install"><option value="Fertilizer"><option value="Weed control"><option value="Fungicide treatment"><option value="Tree/limb trim"><option value="Seasonal cleanup"><option value="Haul-off"></datalist>
+<div class="sheetbg" id="sheetBg" hidden><div class="sheet" id="sheet" role="dialog" aria-modal="true" aria-label="Details"></div></div>
+<div class="askbg" id="askBg" hidden><div class="askbox" role="alertdialog" aria-modal="true" aria-labelledby="askMsg">
+  <p id="askMsg"></p><div class="row"><button class="link" id="askNo">Cancel</button><button class="btn" id="askYes">OK</button></div></div></div>
+<div class="toast" id="toast" role="status" aria-live="polite"><span id="toastMsg"></span><button id="undo"></button></div>
+<input type="file" id="photoInput" accept="image/*" capture="environment" hidden>
+<input type="file" id="photoPick" accept="image/*" multiple hidden>
+<input type="file" id="restoreInput" accept=".json,application/json" hidden>
+<input type="file" id="logoInput" accept="image/png,image/jpeg,image/webp" hidden>
+
+<script>
+"use strict";
+/* ===================== basics ===================== */
+const DAYS=["Mon","Tue","Wed","Thu","Fri","Sat","Sun"], FULL=["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"];
+const MON=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+const MONTH=["January","February","March","April","May","June","July","August","September","October","November","December"];
+const $=id=>document.getElementById(id);
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
+const esc=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const num=v=>parseFloat(String(v==null?"":v).replace(/[^0-9.]/g,""))||0;
+const r2=n=>Math.round((+n||0)*100)/100;
+function money(n){n=r2(n);const cents=Math.round(Math.abs(n)*100)%100!==0;
+  return "$"+Math.abs(n).toLocaleString("en-US",{minimumFractionDigits:cents?2:0,maximumFractionDigits:2});}
+const digits=s=>String(s||"").replace(/\D/g,"");
+function fmtPhone(v){const d=digits(v).replace(/^1(?=\d{10}$)/,"");return d.length===10?`(${d.slice(0,3)})${d.slice(3,6)}-${d.slice(6)}`:String(v||"").trim();}
+const okEmail=e=>!e||/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e);
+const norm=s=>String(s||"").toLowerCase().replace(/\s+/g," ").trim();
+const firstName=n=>String(n||"").trim().split(/\s+/)[0]||"";
+
+const p2=n=>String(n).padStart(2,"0");
+const dKey=d=>`${d.getFullYear()}-${p2(d.getMonth()+1)}-${p2(d.getDate())}`;
+const dParse=k=>{const [y,m,d]=String(k).split("-").map(Number);return new Date(y,m-1,d);};
+function mondayOf(d){const x=new Date(d.getFullYear(),d.getMonth(),d.getDate());x.setDate(x.getDate()-((x.getDay()+6)%7));return dKey(x);}
+function shiftWeek(k,n){const d=dParse(k);d.setDate(d.getDate()+7*n);return dKey(d);}
+function dayDate(k,i){const d=dParse(k);d.setDate(d.getDate()+i);return d;}
+const weeksBetween=(a,b)=>Math.round((dParse(b)-dParse(a))/6048e5);
+let THIS_WEEK=mondayOf(new Date()), todayIdx=(new Date().getDay()+6)%7;
+const todayKey=()=>dKey(new Date());
+function weekRange(k){const a=dayDate(k,0),b=dayDate(k,6);
+  return a.getMonth()===b.getMonth()?`${MON[a.getMonth()]} ${a.getDate()} – ${b.getDate()}`:`${MON[a.getMonth()]} ${a.getDate()} – ${MON[b.getMonth()]} ${b.getDate()}`;}
+function weekMonth(k){const a=dayDate(k,0),b=dayDate(k,6);
+  if(a.getMonth()===b.getMonth())return `${MONTH[a.getMonth()]} ${a.getFullYear()}`;
+  return a.getFullYear()===b.getFullYear()?`${MONTH[a.getMonth()]} – ${MONTH[b.getMonth()]} ${b.getFullYear()}`:`${MONTH[a.getMonth()]} ${a.getFullYear()} – ${MONTH[b.getMonth()]} ${b.getFullYear()}`;}
+function weekRel(k){const n=weeksBetween(THIS_WEEK,k);
+  return n===0?"This week":n===1?"Next week":n===-1?"Last week":n>1?`In ${n} weeks`:`${-n} weeks ago`;}
+const shortDay=(k,i)=>{const d=dayDate(k,i);return `${DAYS[i]}, ${MON[d.getMonth()]} ${d.getDate()}`;};
+const fmtDate=s=>{if(!s)return "";const d=dParse(s);return `${MONTH[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`;};
+const fmtShort=s=>{if(!s)return "";const d=dParse(s);return `${MON[d.getMonth()]} ${d.getDate()}`;};
+function addDays(n){const d=new Date();d.setDate(d.getDate()+n);return dKey(d);}
+
+const ICON={
+  nav:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l18-8-8 18-2-8-8-2z"/></svg>',
+  msg:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/></svg>',
+  cam:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>',
+  dots:'<svg viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg>',
+  gear:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>',
+  jobs:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3 8-8"/><path d="M20 12v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h9"/></svg>',
+  clients:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8"/></svg>',
+  quote:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M8 13h8M8 17h5"/></svg>',
+  invoice:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 2v20l3-2 2 2 2-2 2 2 2-2 3 2V2l-3 2-2-2-2 2-2-2-2 2z"/><path d="M14.5 8.5h-4a1.5 1.5 0 0 0 0 3h3a1.5 1.5 0 0 1 0 3h-4M12 7v1.5M12 14.5V16"/></svg>',
+  books:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 15l4-4 3 3 6-6"/></svg>',
+  share:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"/></svg>',
+  mail:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M22 6l-10 7L2 6"/></svg>',
+  down:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 10l5 5 5-5M5 21h14"/></svg>',
+  phone:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2z"/></svg>',
+  plus:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>'
+};
+const CHECK='<svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
+
+/* ===================== storage (on this phone) ===================== */
+const DEF_SETTINGS={owner:"Zach",bizName:"Lawn Bobs Yard Care",area:"Houston, Texas area",phone:"",email:"",logo:null,
+  terms:"This estimate is valid until the date shown. Recurring service is billed per visit. Payment is due upon completion of each visit. Thank you for choosing Lawn Bobs Yard Care!",
+  invTerms:"Payment is due upon receipt. Thank you for choosing Lawn Bobs Yard Care!",
+  payable:"Lawn Bobs Yard Care",venmo:"",cashapp:"",zelle:"",
+  otw:"Hi {first}, this is {me} with Lawn Bobs Yard Care. I'm on my way to take care of your yard and should be there shortly!",
+  taxPct:25,goalWeek:1850,goalMonth:8000,nextInv:2001,nextQuote:1001,lastBackup:null,snooze:0,backupPhotos:true,theme:"auto",photosOnInvoice:true};
+const S={jobs:[],clients:[],ledger:[],quotes:[],invoices:[],settings:{...DEF_SETTINGS}};
+const KEYS=["jobs","clients","ledger","quotes","invoices","settings"];
+let idb=null; const memPhotos=new Map();
+function idbOpen(){return new Promise(res=>{try{const r=indexedDB.open("lawnbobs",1);
+  r.onupgradeneeded=()=>{const d=r.result;if(!d.objectStoreNames.contains("kv"))d.createObjectStore("kv");
+    if(!d.objectStoreNames.contains("photos")){const s=d.createObjectStore("photos",{keyPath:"id"});s.createIndex("job","jobId");}};
+  r.onsuccess=()=>res(r.result);r.onerror=()=>res(null);r.onblocked=()=>res(null);}catch(e){res(null);}});}
+function tx(store,mode,fn){return new Promise((res,rej)=>{const t=idb.transaction(store,mode);const r=fn(t.objectStore(store));
+  t.oncomplete=()=>res(r&&"result" in r?r.result:undefined);t.onerror=t.onabort=()=>rej(t.error);});}
+function lsGet(k){try{return JSON.parse(localStorage.getItem("lb-"+k));}catch(e){return null;}}
+function lsSet(k,v){try{localStorage.setItem("lb-"+k,JSON.stringify(v));}catch(e){}}
+const kvGet=k=>idb?tx("kv","readonly",s=>s.get(k)):Promise.resolve(lsGet(k));
+const kvSet=(k,v)=>idb?tx("kv","readwrite",s=>s.put(v,k)):Promise.resolve(lsSet(k,v));
+const photoPut=p=>idb?tx("photos","readwrite",s=>s.put(p)):Promise.resolve(memPhotos.set(p.id,p));
+const photoDel=id=>idb?tx("photos","readwrite",s=>s.delete(id)):Promise.resolve(memPhotos.delete(id));
+const photosFor=jobId=>idb?tx("photos","readonly",s=>s.index("job").getAll(jobId)):Promise.resolve([...memPhotos.values()].filter(p=>p.jobId===jobId));
+const photosAll=()=>idb?tx("photos","readonly",s=>s.getAll()):Promise.resolve([...memPhotos.values()]);
+const photosClear=()=>idb?tx("photos","readwrite",s=>s.clear()):Promise.resolve(memPhotos.clear());
+const dirty=new Set(); let saveT=null;
+function save(...keys){keys.forEach(k=>dirty.add(k));clearTimeout(saveT);saveT=setTimeout(flush,150);}
+async function flush(){clearTimeout(saveT);const ks=[...dirty];dirty.clear();
+  for(const k of ks){try{await kvSet(k,JSON.parse(JSON.stringify(S[k])));setStatus("Saved on this phone");}
+    catch(e){setStatus("Couldn't save — phone storage may be full.");dirty.add(k);}}}
+function setStatus(t){const el=$("status");if(el)el.textContent=t;}
+async function askPersist(){try{if(navigator.storage&&navigator.storage.persist&&!(await navigator.storage.persisted()))await navigator.storage.persist();}catch(e){}}
+
+/* ===================== small UI helpers ===================== */
+let lastAction=null, toastT=null;
+function toast(msg,undoable){$("toastMsg").textContent=msg;$("undo").textContent=undoable?"Undo":"";$("toast").classList.add("show");
+  clearTimeout(toastT);toastT=setTimeout(()=>$("toast").classList.remove("show"),5000);if(!undoable)lastAction=null;}
+function ask(msg,yes="OK",danger){return new Promise(res=>{
+  $("askMsg").textContent=msg;$("askYes").textContent=yes;$("askYes").className=danger?"btn":"btn";$("askBg").hidden=false;$("askYes").focus();
+  const done=v=>{$("askBg").hidden=true;$("askYes").onclick=$("askNo").onclick=$("askBg").onclick=null;document.removeEventListener("keydown",k);res(v);};
+  const k=e=>{if(e.key==="Escape")done(false);};
+  $("askYes").onclick=()=>done(true);$("askNo").onclick=()=>done(false);$("askBg").onclick=e=>{if(e.target===$("askBg"))done(false);};
+  document.addEventListener("keydown",k);});}
+let sheetCleanup=[];
+function openSheet(html,label){
+  const wasOpen=!$("sheetBg").hidden; sheetCleanup.forEach(f=>{try{f()}catch(e){}}); sheetCleanup=[];
+  $("sheet").onclick=null; $("sheet").innerHTML=html; $("sheet").setAttribute("aria-label",label||"Details"); $("sheetBg").hidden=false; $("sheet").scrollTop=0;
+  if(!wasOpen)history.pushState({sheet:1},"");}
+function closeSheet(fromPop){if($("sheetBg").hidden)return;$("sheetBg").hidden=true;$("sheet").innerHTML="";sheetCleanup.forEach(f=>{try{f()}catch(e){}});sheetCleanup=[];
+  if(!fromPop&&history.state&&history.state.sheet)history.back();}
+window.addEventListener("popstate",()=>closeSheet(true));
+$("sheetBg").addEventListener("click",e=>{if(e.target===$("sheetBg"))closeSheet();});
+document.addEventListener("keydown",e=>{if(e.key==="Escape"&&$("askBg").hidden)closeSheet();});
+function downloadBlob(blob,name){const u=URL.createObjectURL(blob);const a=document.createElement("a");a.href=u;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),60000);}
+async function shareFile(blob,name,type,text){
+  const f=new File([blob],name,{type});
+  if(navigator.canShare&&navigator.share){try{if(navigator.canShare({files:[f]})){await navigator.share({files:[f],title:name,text:text||""});return "shared";}}
+    catch(e){if(e&&e.name==="AbortError")return "cancelled";}}
+  downloadBlob(blob,name);return "downloaded";}
+
+/* ===================== clients ===================== */
+const clientById=id=>S.clients.find(c=>c.id===id);
+const liveClients=()=>S.clients.filter(c=>!c.deleted);
+function clientByName(n){const k=norm(n);return k?liveClients().find(c=>norm(c.n)===k):null;}
+function primaryAddr(c){if(!c||!c.props||!c.props.length)return "";const p=c.props.find(p=>!/billing/i.test(p.l||""))||c.props[0];return p.a||"";}
+const clientOf=j=>(j.clientId&&clientById(j.clientId))||clientByName(j.name);
+function nextVisit(c){
+  if(!(c.g==="weekly"||c.g==="biweekly")||c.day==null)return null;
+  let w=c.start&&c.start>THIS_WEEK?c.start:THIS_WEEK;
+  if(c.g==="biweekly"&&c.start&&weeksBetween(c.start,w)%2!==0)w=shiftWeek(w,1);
+  const d=dayDate(w,c.day); if(d<dParse(todayKey()))return dayDate(shiftWeek(w,c.g==="biweekly"?2:1),c.day);
+  return d;}
+function schedText(c){
+  if(c.g==="inactive")return "Inactive";
+  if(c.g==="none")return "No recurring visits";
+  if(c.day==null)return "";
+  const nv=nextVisit(c);const every=c.g==="weekly"?`Every ${FULL[c.day]}`:`Every other ${FULL[c.day]}`;
+  return `${every}${c.price?` · ${money(c.price)}`:""}${nv?` · next ${MON[nv.getMonth()]} ${nv.getDate()}`:""}`;}
+
+/* ===================== jobs & auto-fill ===================== */
+let viewWeek=THIS_WEEK, filter=todayIdx, showDone=false;
+let toolsId=null,movingId=null,editingId=null,svcId=null;
+const pending=new Set();
+const jw=j=>j.week;
+const visible=j=>!j.removed;
+const jobTotal=j=>(+j.price||0)+(j.extras||[]).reduce((a,x)=>a+(+x.p||0),0);
+const jobAddr=j=>j.addr||primaryAddr(clientOf(j));
+const jobPhone=j=>{const c=clientOf(j);return (c&&c.ph)||j.ph||"";};
+const mapsUrl=a=>"https://www.google.com/maps/dir/?api=1&destination="+encodeURIComponent(a)+"&travelmode=driving";
+function routeUrl(stops){const s=stops.slice(0,4);const dest=s[s.length-1],wp=s.slice(0,-1);
+  return "https://www.google.com/maps/dir/?api=1&destination="+encodeURIComponent(dest)+(wp.length?"&waypoints="+encodeURIComponent(wp.join("|")):"")+"&travelmode=driving";}
+function smsUrl(ph,body){return `sms:${digits(ph)}?body=${encodeURIComponent(body)}`;}
+function otwUrl(j){const ph=jobPhone(j);if(!ph)return "";
+  const msg=(S.settings.otw||DEF_SETTINGS.otw).replace(/\{first\}/g,firstName(j.name)).replace(/\{me\}/g,S.settings.owner||"");return smsUrl(ph,msg);}
+const orderOf=j=>j.order!=null?j.order:j.created;
+
+function autoFill(week){
+  if(week<THIS_WEEK)return;
+  let added=false;
+  for(const c of liveClients()){
+    if(!(c.g==="weekly"||c.g==="biweekly")||c.day==null)continue;
+    const anchor=c.start||THIS_WEEK; if(week<anchor)continue;
+    if(c.g==="biweekly"&&weeksBetween(anchor,week)%2!==0)continue;
+    const id=`a-${c.id}-${week}`;
+    if(S.jobs.some(j=>j.id===id))continue;
+    if(S.jobs.some(j=>j.week===week&&!j.removed&&(j.clientId===c.id||norm(j.name)===norm(c.n))))continue;
+    S.jobs.push({id,clientId:c.id,auto:true,name:c.n,addr:primaryAddr(c),detail:c.svc||"Lawn maintenance",note:c.notes||"",price:+c.price||0,extras:[],day:c.day,week,created:Date.now()+c.day,done:false});
+    added=true;
+  }
+  if(added)save("jobs");
+}
+// when a client's schedule changes, rebuild their future auto jobs that haven't been touched
+function resetAutoJobs(clientId){
+  const before=S.jobs.length;
+  S.jobs=S.jobs.filter(j=>!(j.auto&&j.clientId===clientId&&!j.done&&!j.touched&&j.week>=THIS_WEEK&&!j.removed));
+  if(S.jobs.length!==before)save("jobs");
+}
+const inView=j=>j.week===viewWeek&&visible(j);
+const openJobs=()=>S.jobs.filter(j=>inView(j)&&!j.done);
+
+function dayGrid(k,cur,cls){
+  return DAYS.map((d,i)=>{const dt=dayDate(k,i);const isCur=cur&&cur.week===k&&cur.day===i;
+    return `<button class="mday ${cls}" data-day="${i}" data-wk="${k}" ${isCur?'aria-current="true" disabled':""} aria-label="${shortDay(k,i)}"><span>${d}</span><b>${dt.getDate()}</b></button>`;}).join("");}
+function extrasHTML(j,removable){const x=j.extras||[];if(!x.length)return "";
+  return `<ul class="extras">${x.map((e,i)=>`<li>+ ${esc(e.s)}${e.p?` <b>${money(e.p)}</b>`:""}${removable?`<button class="xrm" data-i="${i}" aria-label="Remove ${esc(e.s)}">×</button>`:""}</li>`).join("")}</ul>`;}
+const photoCount=new Map();
+function pcount(id){return photoCount.get(id)||0;}
+
+function jobHTML(j,list){
+  const addr=jobAddr(j), otw=otwUrl(j), tot=jobTotal(j), pc=pcount(j.id), idx=list.indexOf(j);
+  const det=[j.detail,j.note].filter(Boolean).join(" · ");
+  return `<li class="job" data-id="${j.id}">
+    <div class="jtop">
+      <button class="check" aria-label="Mark ${esc(j.name)} done">${CHECK}</button>
+      <div class="info"><div class="name">${esc(j.name)}${j.auto?'<span class="tag">Auto</span>':""}</div>
+        ${addr?`<a class="addr" href="${mapsUrl(addr)}" target="_blank" rel="noopener">${esc(addr)}</a>`:""}
+        ${det?`<div class="detail">${esc(det)}</div>`:""}${extrasHTML(j,true)}</div>
+      ${tot?`<span class="amt">${money(tot)}</span>`:""}
+    </div>
+    <div class="jacts">
+      ${addr?`<a class="act go" href="${mapsUrl(addr)}" target="_blank" rel="noopener">${ICON.nav}<span>Navigate</span></a>`:""}
+      ${otw?`<a class="act" href="${otw}">${ICON.msg}<span>On my way</span></a>`:""}
+      <button class="act jphotos compact" aria-label="Photos${pc?`, ${pc} saved`:""}">${ICON.cam}${pc?`<span>${pc}</span>`:""}</button>
+      <button class="act more${toolsId===j.id?" on":""}" aria-label="More options for ${esc(j.name)}" aria-expanded="${toolsId===j.id}">${ICON.dots}</button>
+    </div>
+    ${toolsId===j.id?`<div class="tools">
+      <button class="t-edit">Edit</button><button class="t-move">Move day</button><button class="t-svc">+ Service</button>
+      <button class="t-up" ${idx<=0?"disabled":""}>↑ Earlier</button><button class="t-down" ${idx<0||idx>=list.length-1?"disabled":""}>↓ Later</button>
+      <button class="t-rm danger">Skip / remove</button></div>`:""}
+    ${movingId===j.id?`<div class="panel">
+      <span class="mvlabel">${weekRel(j.week)} · ${weekRange(j.week)}</span>
+      <div class="moverow">${dayGrid(j.week,{week:j.week,day:j.day},"mvd")}</div>
+      <span class="mvlabel">Following week · ${weekRange(shiftWeek(j.week,1))}</span>
+      <div class="moverow">${dayGrid(shiftWeek(j.week,1),null,"mvd")}</div></div>`:""}
+    ${editingId===j.id?`<div class="panel">
+      <label>Client / job<input class="jn" value="${esc(j.name)}" maxlength="80"></label>
+      <label>Address<input class="ja" value="${esc(j.addr||addr)}" maxlength="140"></label>
+      <label>Service<input class="jd" list="svcList" value="${esc(j.detail)}" maxlength="100"></label>
+      <label>Note<input class="jnote" value="${esc(j.note)}" maxlength="140"></label>
+      <div class="row"><label style="max-width:110px">Price<input class="jp" inputmode="decimal" value="${j.price||""}" maxlength="8"></label>
+      <button class="btn jsave">Save</button><button class="link jcancel">Cancel</button></div></div>`:""}
+    ${svcId===j.id?`<div class="panel">
+      <div class="row"><input class="sn" list="svcList" placeholder="Service (e.g. Hedge trim)" aria-label="Service" maxlength="60">
+      <input class="sp" inputmode="decimal" placeholder="$" aria-label="Price" maxlength="8" style="max-width:96px"></div>
+      <div class="row"><button class="btn sadd">Add</button><button class="link scancel">Cancel</button></div></div>`:""}
+  </li>`;}
+function doneHTML(j){
+  const inv=j.invoiceId&&S.invoices.find(i=>i.id===j.invoiceId), pc=pcount(j.id), tot=jobTotal(j);
+  return `<li class="job done" data-id="${j.id}">
+    <div class="jtop"><span class="check" aria-hidden="true">${CHECK}</span>
+      <div class="info"><div class="name">${esc(j.name)}</div><div class="detail">${shortDay(j.week,j.day)}${jobAddr(j)?" · "+esc(jobAddr(j)):""}</div>${extrasHTML(j,false)}</div>
+      ${tot?`<span class="amt">${money(tot)}</span>`:""}</div>
+    <div class="jacts">
+      ${inv?`<button class="act j-openinv">${ICON.invoice}<span>#${inv.no} · ${inv.status==="paid"?"Paid":"Unpaid"}</span></button>`
+           :`<button class="act go j-invoice">${ICON.invoice}<span>Invoice</span></button>`}
+      <button class="act jphotos">${ICON.cam}<span>Photos${pc?` (${pc})`:""}</span></button>
+      <button class="act restore" style="flex:0 0 auto;padding:8px 12px">Undo</button>
+    </div></li>`;}
+function renderDays(){
+  const open=openJobs(); const isThis=viewWeek===THIS_WEEK;
+  const opts=[["all","Week",open.length,false],...DAYS.map((d,i)=>[i,`${d} ${dayDate(viewWeek,i).getDate()}`,open.filter(j=>j.day===i).length,isThis&&i===todayIdx])];
+  $("days").innerHTML=opts.map(([v,l,c,t])=>`<button class="chip${t?" today":""}" data-v="${v}" aria-pressed="${String(v)===String(filter)}"${t?` aria-label="${l}, today"`:""}>${l}<span class="n">${c}</span></button>`).join("");
+  $("wRange").textContent=weekRange(viewWeek); $("wSub").textContent=weekRel(viewWeek)+(isThis?"":" · tap for this week");
+}
+function renderTally(){
+  const done=S.jobs.filter(j=>inView(j)&&j.done), all=S.jobs.filter(inView);
+  $("tallyBig").textContent=`${done.length}/${all.length}`;
+  $("tallySmall").textContent="done · "+money(done.reduce((a,j)=>a+jobTotal(j),0));
+}
+function renderJobs(){
+  autoFill(viewWeek);
+  renderDays(); renderTally(); renderBanner();
+  if(curTab==="jobs")$("hdrSub").textContent=weekMonth(viewWeek);
+  const days=filter==="all"?DAYS.map((_,i)=>i):[filter];
+  const open=openJobs().filter(j=>!pending.has(j.id));
+  const sel=filter==="all"?(viewWeek===THIS_WEEK?todayIdx:0):filter;
+  $("jDay").innerHTML=DAYS.map((d,i)=>`<option value="${i}" ${i===sel?"selected":""}>${shortDay(viewWeek,i)}</option>`).join("");
+  let html=days.map(i=>{
+    const list=open.filter(j=>j.day===i).sort((a,b)=>orderOf(a)-orderOf(b));
+    const all=S.jobs.filter(j=>inView(j)&&j.day===i);
+    if(filter==="all"&&!all.length)return "";
+    const dt=dayDate(viewWeek,i);
+    const stops=list.map(jobAddr).filter(Boolean);
+    const tot=all.reduce((a,j)=>a+jobTotal(j),0), doneAmt=all.filter(j=>j.done).reduce((a,j)=>a+jobTotal(j),0);
+    const foot=all.length?`<div class="daytotal"><span>${FULL[i]} total <small>${all.length} job${all.length>1?"s":""}${doneAmt?` · ${money(doneAmt)} done · ${money(tot-doneAmt)} left`:""}</small></span><b>${money(tot)}</b></div>`:"";
+    return `<div class="dayh"><h2>${FULL[i]}, ${MON[dt.getMonth()]} ${dt.getDate()}</h2>${stops.length?`<a class="link" href="${routeUrl(stops)}" target="_blank" rel="noopener">${ICON.nav}Route${stops.length>4?" next 4":""}</a>`:""}</div>`
+      +(list.length?`<ul>${list.map(j=>jobHTML(j,list)).join("")}</ul>`:`<p class="empty">${all.length?"All done for "+shortDay(viewWeek,i)+". Nice work.":"No jobs for "+shortDay(viewWeek,i)+"."}</p>`)+foot;
+  }).join("")||`<p class="empty" style="margin-top:22px">${S.jobs.some(inView)?"Every job this week is checked off. Nice work.":"No jobs for "+weekRange(viewWeek)+" yet."}</p>`;
+  const done=S.jobs.filter(j=>inView(j)&&j.done&&(filter==="all"||j.day===filter)).sort((a,b)=>(b.doneAt||0)-(a.doneAt||0));
+  if(done.length){html+=`<button class="link" id="toggleDone" style="margin-top:22px;width:100%">${showDone?"Hide":"Show"} finished jobs (${done.length})</button>`;
+    if(showDone)html+=`<ul style="margin-top:10px">${done.map(doneHTML).join("")}</ul>`;}
+  if(!S.clients.length&&!S.jobs.length)html=`<div class="banner" style="margin-top:18px"><p><b>Welcome!</b> Bring over your clients, jobs and books from your old checklist: tap below and pick the <b>LawnBobs-import</b> file.</p><div class="row"><button class="btn" data-act="restore">Import my data</button></div></div>`+html;
+  $("lists").innerHTML=html;
+}
+function findJob(id){return S.jobs.find(j=>j.id===id);}
+function addJob(){
+  const name=$("jName").value.trim(); if(!name){$("jName").focus();return;}
+  const c=clientByName(name);
+  const j={id:uid(),clientId:c?c.id:null,name,addr:$("jAddr").value.trim(),detail:$("jSvc").value.trim(),note:"",price:num($("jPrice").value),extras:[],day:+$("jDay").value,week:viewWeek,created:Date.now(),done:false};
+  S.jobs.push(j); ["jName","jAddr","jSvc","jPrice"].forEach(id=>$(id).value=""); $("jForm").hidden=true; $("jAddOpen").hidden=false;
+  if(filter!=="all")filter=j.day; save("jobs"); renderJobs(); toast(`${j.name} added to ${shortDay(j.week,j.day)}`);
+}
+function completeJob(id){
+  const j=findJob(id); if(!j||j.done||pending.has(id))return;
+  j.done=true; j.doneAt=Date.now(); pending.add(id); toolsId=movingId=editingId=svcId=null;
+  const li=document.querySelector(`.job[data-id="${id}"]`); if(li)li.classList.add("done");
+  renderTally(); renderDays(); logJobIncome(j); save("jobs");
+  lastAction={type:"done",id}; toast(`${j.name} done${jobTotal(j)?" · "+money(jobTotal(j))+" logged":""}`,true);
+  setTimeout(()=>{const el=document.querySelector(`.job[data-id="${id}"]`);if(el)el.classList.add("leaving");setTimeout(()=>{pending.delete(id);renderJobs();},350);},600);
+}
+function restoreJob(id){const j=findJob(id);if(!j)return;j.done=false;delete j.doneAt;pending.delete(id);unlogJobIncome(id);save("jobs");renderJobs();}
+function removeJob(id){
+  const j=findJob(id); if(!j)return;
+  if(j.auto){j.removed=true;}else S.jobs=S.jobs.filter(x=>x.id!==id);
+  toolsId=null; lastAction={type:"removed",job:{...j,removed:false}}; save("jobs"); renderJobs(); toast(`${j.name} ${j.auto?"skipped this week":"removed"}`,true);
+}
+function moveJob(id,day,week){
+  const j=findJob(id); if(!j)return; if(j.day===day&&j.week===week)return;
+  const from={day:j.day,week:j.week}; j.day=day; j.week=week; j.touched=true; delete j.order; movingId=null; toolsId=null;
+  lastAction={type:"moved",id,from}; save("jobs"); renderJobs();
+  toast(`${j.name} moved to ${shortDay(week,day)}${week!==from.week?" ("+weekRel(week).toLowerCase()+")":""}`,true);
+}
+function reorder(id,dir){
+  const j=findJob(id); if(!j)return;
+  const list=openJobs().filter(x=>x.day===j.day).sort((a,b)=>orderOf(a)-orderOf(b));
+  list.forEach((x,i)=>x.order=i); const i=list.indexOf(j), k=i+dir; if(k<0||k>=list.length)return;
+  list[i].order=k; list[k].order=i; j.touched=true; save("jobs"); renderJobs();
+}
+function saveJobEdit(li){
+  const j=findJob(li.dataset.id); if(!j)return; const name=li.querySelector(".jn").value.trim(); if(!name){li.querySelector(".jn").focus();return;}
+  const before={name:j.name,addr:j.addr,detail:j.detail,note:j.note,price:j.price};
+  Object.assign(j,{name,addr:li.querySelector(".ja").value.trim(),detail:li.querySelector(".jd").value.trim(),note:li.querySelector(".jnote").value.trim(),price:num(li.querySelector(".jp").value),touched:true});
+  editingId=null; toolsId=null; lastAction={type:"edited",id:j.id,before}; save("jobs"); renderJobs(); toast(`${j.name} updated`,true);
+}
+function addService(li){
+  const j=findJob(li.dataset.id); if(!j)return; const sn=li.querySelector(".sn").value.trim(); if(!sn){li.querySelector(".sn").focus();return;}
+  const before=(j.extras||[]).map(x=>({...x})); j.extras=before.concat({s:sn,p:num(li.querySelector(".sp").value)}); j.touched=true;
+  svcId=null; toolsId=null; lastAction={type:"extras",id:j.id,before}; save("jobs"); renderJobs(); toast(`${sn} added to ${j.name}`,true);
+}
+function removeService(li,i){
+  const j=findJob(li.dataset.id); if(!j||!j.extras)return; const before=j.extras.map(x=>({...x})); const gone=before[i];
+  j.extras=before.filter((_,k)=>k!==i); lastAction={type:"extras",id:j.id,before}; save("jobs"); renderJobs(); toast(`${gone.s} removed`,true);
+}
+async function clearWeek(){
+  const wk=S.jobs.filter(inView); if(!wk.length){toast("Nothing to clear for "+weekRange(viewWeek));return;}
+  if(!await ask(`Clear all ${wk.length} job${wk.length>1?"s":""} for ${weekRange(viewWeek)}? Other weeks aren't touched. Earnings already logged in Books stay.`,"Clear week"))return;
+  S.jobs=S.jobs.filter(j=>!inView(j)||j.auto); S.jobs.forEach(j=>{if(inView(j)&&j.auto)j.removed=true;}); save("jobs"); renderJobs();
+}
+async function undo(){
+  const a=lastAction; lastAction=null; $("toast").classList.remove("show"); if(!a)return;
+  const j=a.id&&findJob(a.id);
+  switch(a.type){
+    case "done": restoreJob(a.id); return;
+    case "removed": S.jobs=S.jobs.filter(x=>x.id!==a.job.id).concat(a.job); save("jobs"); renderJobs(); return;
+    case "moved": if(j){j.day=a.from.day;j.week=a.from.week;save("jobs");renderJobs();} return;
+    case "edited": if(j){Object.assign(j,a.before);save("jobs");renderJobs();} return;
+    case "extras": if(j){j.extras=a.before;save("jobs");renderJobs();} return;
+    case "entryAdded": S.ledger=S.ledger.filter(x=>x.id!==a.eid); save("ledger"); renderBooks(); return;
+    case "entryRemoved": S.ledger.push(a.entry); save("ledger"); renderBooks(); return;
+    case "clientRemoved": {const c=clientById(a.cid); if(c){delete c.deleted; save("clients"); renderClients(); renderJobs();} return;}
+    case "quoteRemoved": S.quotes.push(a.quote); save("quotes"); renderQuotes(); return;
+    case "quoteAccepted": {S.jobs=S.jobs.filter(x=>x.id!==a.jobId); const q=S.quotes.find(x=>x.id===a.qid); if(q){q.status="sent";delete q.jobId;} save("jobs","quotes"); renderJobs(); renderQuotes(); return;}
+    case "invoiceRemoved": S.invoices.push(a.inv); (a.inv.jobIds||[]).forEach(id=>{const jj=findJob(id);if(jj)jj.invoiceId=a.inv.id;}); save("invoices","jobs"); renderInvoices(); renderJobs(); return;
+    case "paid": {const inv=S.invoices.find(x=>x.id===a.iid); if(inv){setUnpaid(inv);} return;}
+  }
+}
+// events: jobs
+$("days").addEventListener("click",e=>{const b=e.target.closest(".chip");if(!b)return;filter=b.dataset.v==="all"?"all":+b.dataset.v;renderJobs();});
+$("lists").addEventListener("click",e=>{
+  if(e.target.id==="toggleDone"){showDone=!showDone;renderJobs();return;}
+  if(e.target.closest('[data-act="restore"]')){$("restoreInput").click();return;}
+  const li=e.target.closest(".job"); if(!li)return; const id=li.dataset.id, t=e.target;
+  if(t.closest(".restore"))restoreJob(id);
+  else if(t.closest("button.check"))completeJob(id);
+  else if(t.closest(".jphotos"))openPhotos(id);
+  else if(t.closest(".j-invoice"))invoiceFromJob(id);
+  else if(t.closest(".j-openinv")){const j=findJob(id);showTab("invoices");iFilter="all";syncChips("ifilters","i",iFilter);renderInvoices();scrollToInvoice(j.invoiceId);}
+  else if(t.closest(".more")){toolsId=toolsId===id?null:id;movingId=editingId=svcId=null;renderJobs();}
+  else if(t.closest(".t-edit")){editingId=id;movingId=svcId=null;renderJobs();const f=document.querySelector(`.job[data-id="${id}"] .jd`);if(f)f.focus();}
+  else if(t.closest(".t-move")){movingId=movingId===id?null:id;editingId=svcId=null;renderJobs();}
+  else if(t.closest(".t-svc")){svcId=id;editingId=movingId=null;renderJobs();const f=document.querySelector(`.job[data-id="${id}"] .sn`);if(f)f.focus();}
+  else if(t.closest(".t-up"))reorder(id,-1);
+  else if(t.closest(".t-down"))reorder(id,1);
+  else if(t.closest(".t-rm"))removeJob(id);
+  else if(t.closest(".mvd")){const b=t.closest(".mvd");moveJob(id,+b.dataset.day,b.dataset.wk);}
+  else if(t.closest(".jsave"))saveJobEdit(li);
+  else if(t.closest(".jcancel")){editingId=null;renderJobs();}
+  else if(t.closest(".sadd"))addService(li);
+  else if(t.closest(".scancel")){svcId=null;renderJobs();}
+  else if(t.closest(".xrm"))removeService(li,+t.closest(".xrm").dataset.i);
+});
+$("lists").addEventListener("keydown",e=>{if(e.key!=="Enter")return;const li=e.target.closest(".job");if(!li)return;
+  if(e.target.matches(".jn,.ja,.jd,.jnote,.jp"))saveJobEdit(li);if(e.target.matches(".sn,.sp"))addService(li);});
+$("wPrev").addEventListener("click",()=>{viewWeek=shiftWeek(viewWeek,-1);filter=viewWeek===THIS_WEEK?todayIdx:"all";toolsId=movingId=null;renderJobs();});
+$("wNext").addEventListener("click",()=>{viewWeek=shiftWeek(viewWeek,1);filter=viewWeek===THIS_WEEK?todayIdx:"all";toolsId=movingId=null;renderJobs();});
+$("wSub").addEventListener("click",()=>{if(viewWeek!==THIS_WEEK){viewWeek=THIS_WEEK;filter=todayIdx;renderJobs();}});
+$("jAddOpen").addEventListener("click",()=>{$("jForm").hidden=false;$("jAddOpen").hidden=true;$("jName").focus();});
+$("jCancel").addEventListener("click",()=>{$("jForm").hidden=true;$("jAddOpen").hidden=false;});
+$("jAdd").addEventListener("click",addJob);
+["jName","jAddr","jSvc","jPrice"].forEach(id=>$(id).addEventListener("keydown",e=>{if(e.key==="Enter")addJob();}));
+$("jName").addEventListener("change",()=>{const c=clientByName($("jName").value);if(!c)return;
+  if(!$("jAddr").value)$("jAddr").value=primaryAddr(c); if(!$("jSvc").value)$("jSvc").value=c.svc||""; if(!$("jPrice").value&&c.price)$("jPrice").value=c.price;});
+$("clearWeek").addEventListener("click",clearWeek);
+$("undo").addEventListener("click",undo);
+
+/* ===================== photos ===================== */
+let photoTarget=null;
+async function refreshPhotoCounts(){try{const all=await photosAll();photoCount.clear();all.forEach(p=>photoCount.set(p.jobId,(photoCount.get(p.jobId)||0)+1));}catch(e){}}
+async function compressImage(file){
+  let src;try{src=await createImageBitmap(file,{imageOrientation:"from-image"});}
+  catch(e){src=await new Promise((res,rej)=>{const im=new Image();im.onload=()=>res(im);im.onerror=rej;im.src=URL.createObjectURL(file);});}
+  const w=src.width||src.naturalWidth,h=src.height||src.naturalHeight,s=Math.min(1,1600/Math.max(w,h));
+  const c=document.createElement("canvas");c.width=Math.round(w*s);c.height=Math.round(h*s);c.getContext("2d").drawImage(src,0,0,c.width,c.height);
+  return await new Promise(r=>c.toBlob(r,"image/jpeg",.82));}
+async function openPhotos(jobId){
+  const j=findJob(jobId); if(!j)return;
+  const list=(await photosFor(jobId)).sort((a,b)=>a.created-b.created);
+  const urls=[]; const u=b=>{const x=URL.createObjectURL(b);urls.push(x);return x;};
+  const group=kind=>{const ps=list.filter(p=>p.kind===kind);
+    return `<div class="pgroup"><span class="sec">${kind==="before"?"Before":"After"}</span><div class="thumbs">
+      ${ps.map(p=>`<button data-pid="${p.id}" aria-label="View ${kind} photo"><img src="${u(p.blob)}" alt=""></button>`).join("")}
+      <button class="addph" data-kind="${kind}">${ICON.cam}Take photo</button></div>
+      <button class="link" data-pick="${kind}">Add ${kind} photo from gallery</button></div>`;};
+  openSheet(`<div class="shead"><h3>Photos · ${esc(j.name)}</h3><button class="link" data-close>Done</button></div>
+    <p class="sub">${shortDay(j.week,j.day)}${jobAddr(j)?" · "+esc(jobAddr(j)):""}</p>
+    ${group("before")}${group("after")}
+    <p class="note">Photos stay on this phone with the job. "After" photos can go on the invoice.</p>`,"Job photos");
+  sheetCleanup.push(()=>urls.forEach(x=>URL.revokeObjectURL(x)));
+  const sh=$("sheet");
+  sh.onclick=async e=>{
+    if(e.target.closest("[data-close]")){closeSheet();return;}
+    const add=e.target.closest(".addph"); if(add){photoTarget={jobId,kind:add.dataset.kind};$("photoInput").click();return;}
+    const pk=e.target.closest("[data-pick]"); if(pk){photoTarget={jobId,kind:pk.dataset.pick};$("photoPick").click();return;}
+    const t=e.target.closest("[data-pid]"); if(t){viewPhoto(list.find(p=>p.id===t.dataset.pid),jobId);}
+  };
+}
+function viewPhoto(p,jobId){
+  if(!p)return; const url=URL.createObjectURL(p.blob); const j=findJob(jobId);
+  openSheet(`<div class="shead"><h3>${p.kind==="before"?"Before":"After"} photo</h3><button class="link" data-back>Back</button></div>
+    <img class="bigphoto" src="${url}" alt="${p.kind} photo of ${esc(j?j.name:"")}">
+    <div class="row" style="display:flex;gap:8px"><button class="btn green" data-share style="flex:1">${"Share"}</button><button class="link danger" data-del style="flex:1">Delete</button></div>`,"Photo");
+  sheetCleanup.push(()=>URL.revokeObjectURL(url));
+  $("sheet").onclick=async e=>{
+    if(e.target.closest("[data-back]")){openPhotos(jobId);return;}
+    if(e.target.closest("[data-share]")){await shareFile(p.blob,`${(j?j.name:"job").replace(/[^\w\s-]/g,"")} ${p.kind}.jpg`,"image/jpeg");return;}
+    if(e.target.closest("[data-del]")){if(!await ask("Delete this photo?","Delete"))return;await photoDel(p.id);await refreshPhotoCounts();renderJobs();openPhotos(jobId);}
+  };
+}
+async function addPhotoFiles(files){
+  if(!photoTarget||!files.length)return; const {jobId,kind}=photoTarget; photoTarget=null;
+  for(const f of files){try{const blob=await compressImage(f);await photoPut({id:uid(),jobId,kind,blob,created:Date.now()});}catch(e){toast("Couldn't save that photo");}}
+  askPersist(); await refreshPhotoCounts(); renderJobs(); openPhotos(jobId);
+}
+$("photoInput").addEventListener("change",e=>{const f=[...e.target.files];e.target.value="";addPhotoFiles(f);});
+$("photoPick").addEventListener("change",e=>{const f=[...e.target.files];e.target.value="";addPhotoFiles(f);});
+
+/* ===================== clients UI ===================== */
+let cFilter="all", editingClient=null;
+const GROUPS=[["weekly","Weekly"],["biweekly","Bi-weekly"],["none","No recurring visits"],["inactive","Inactive"]];
+function fillClientNames(){$("clientNames").innerHTML=liveClients().filter(c=>c.g!=="inactive").sort((a,b)=>a.n.localeCompare(b.n)).map(c=>`<option value="${esc(c.n)}">`).join("");}
+function renderClients(){
+  fillClientNames();
+  const q=$("csearch").value.trim().toLowerCase(), dq=digits(q), all=liveClients();
+  const list=all.filter(c=>{if(cFilter!=="all"&&c.g!==cFilter)return false;if(!q)return true;
+    const hay=[c.n,c.co||"",c.em||"",c.notes||"",...(c.props||[]).map(p=>p.a+" "+p.l)].join(" ").toLowerCase();
+    return hay.includes(q)||(dq.length>=3&&digits(c.ph).includes(dq));});
+  const cnt=g=>all.filter(c=>c.g===g).length;
+  $("csum").textContent=`${all.length-cnt("inactive")} clients: ${cnt("weekly")} weekly · ${cnt("biweekly")} bi-weekly · ${cnt("none")} unscheduled · ${cnt("inactive")} inactive`+(q?` · showing ${list.length}`:"");
+  const card=c=>{const st=schedText(c), addr=primaryAddr(c), needDay=(c.g==="weekly"||c.g==="biweekly")&&c.day==null;
+    return `<li class="client${c.g==="inactive"?" off":""}">
+    <div class="top"><div><div class="cn">${esc(c.n)}</div>${c.co?`<div class="co">${esc(c.co)}</div>`:""}</div>${
+      c.g==="inactive"?`<span class="badge inactive">Inactive</span>`:c.g==="weekly"?`<span class="badge freq">Weekly</span>`:c.g==="biweekly"?`<span class="badge freq bi">Bi-weekly</span>`:`<span class="badge">Unscheduled</span>`}</div>
+    ${needDay?`<div class="sched warn">No route day yet — tap Edit to auto-fill this client's jobs</div>`:st&&c.g!=="inactive"&&c.g!=="none"?`<div class="sched">${esc(st)}</div>`:""}
+    <ul class="props">${(c.props||[]).map(p=>`<li>${p.l?`<b>${esc(p.l)}:</b> `:""}${esc(p.a)}</li>`).join("")}</ul>
+    ${c.notes?`<div class="cnote">${esc(c.notes)}</div>`:""}
+    <div class="acts">
+      ${c.ph?`<a class="link call" href="tel:${digits(c.ph)}">${ICON.phone}${esc(c.ph)}</a><a class="link" href="sms:${digits(c.ph)}">Text</a>`:""}
+      ${addr?`<a class="link" href="${mapsUrl(addr)}" target="_blank" rel="noopener">${ICON.nav}Map</a>`:""}
+      ${c.em?`<a class="link" href="mailto:${esc(c.em)}">Email</a>`:""}
+      <button class="link cedit" data-cid="${c.id}">Edit</button><button class="link danger cdel" data-cid="${c.id}">Delete</button>
+    </div></li>`;};
+  $("clist").innerHTML=GROUPS.map(([g,label])=>{const items=list.filter(c=>c.g===g).sort((a,b)=>a.n.localeCompare(b.n));
+    if(!items.length)return "";return `<li><h2>${label} <span class="gcount">${items.length}</span></h2></li>`+items.map(card).join("");}).join("")
+    ||`<li class="empty">${all.length?"No clients match that search.":"No clients yet. Tap + Add new client, or import your data from Settings."}</li>`;
+}
+function propRow(l="",a=""){return `<div class="prow"><input class="pl" placeholder="Label" aria-label="Property label (optional)" value="${esc(l)}" maxlength="30"><input class="pa" placeholder="Street, city" aria-label="Property address" value="${esc(a)}" maxlength="120"><button class="x prm" type="button" aria-label="Remove this property">×</button></div>`;}
+function syncSchedFields(){const g=$("cG").value, on=g==="weekly"||g==="biweekly";$("cSched").hidden=!on;
+  $("cStartLbl").textContent=g==="biweekly"?"Next mow date":"Start date";
+  $("cSchedHint").textContent=g==="biweekly"?"Pick the date of their next mow. Jobs then fill in every other week from there.":"Jobs fill in every week on the route day.";}
+function openClientForm(c){
+  editingClient=c||null; $("cFormTitle").textContent=c?"Edit client":"New client";
+  $("cName").value=c?c.n:""; $("cCo").value=c&&c.co||""; $("cPh").value=c&&c.ph||""; $("cEm").value=c&&c.em||"";
+  $("cG").value=c?c.g:"biweekly";
+  $("cDay").innerHTML=`<option value="">Pick a day</option>`+FULL.map((d,i)=>`<option value="${i}">${d}</option>`).join("");
+  $("cDay").value=c&&c.day!=null?String(c.day):"";
+  const nv=c&&nextVisit(c); $("cStart").value=nv?dKey(nv):"";
+  $("cSvc").value=c&&c.svc||"Lawn maintenance"; $("cPrice").value=c&&c.price||""; $("cNotes").value=c&&c.notes||"";
+  $("cProps").innerHTML=(c&&c.props&&c.props.length?c.props:[{l:"",a:""}]).map(p=>propRow(p.l,p.a)).join("");
+  $("cErr").textContent=""; syncSchedFields(); $("cForm").hidden=false; $("cOpen").hidden=true;
+  window.scrollTo({top:$("cForm").offsetTop-20,behavior:"smooth"}); $("cName").focus({preventScroll:true});
+}
+function closeClientForm(){$("cForm").hidden=true;$("cOpen").hidden=false;editingClient=null;}
+$("cDay").addEventListener("change",()=>{ // default the date to the next one on that weekday
+  if($("cDay").value===""||$("cStart").value)return; const d=+$("cDay").value; let w=THIS_WEEK; if(dayDate(w,d)<dParse(todayKey()))w=shiftWeek(w,1); $("cStart").value=dKey(dayDate(w,d));});
+$("cStart").addEventListener("change",()=>{if(!$("cStart").value)return;const d=(dParse($("cStart").value).getDay()+6)%7;$("cDay").value=String(d);});
+function saveClient(){
+  const n=$("cName").value.trim().replace(/\s+/g," "); if(!n){$("cErr").textContent="Add the client's name.";$("cName").focus();return;}
+  const em=$("cEm").value.trim(); if(!okEmail(em)){$("cErr").textContent="That email doesn't look right.";$("cEm").focus();return;}
+  const props=[...$("cProps").querySelectorAll(".prow")].map(r=>({l:r.querySelector(".pl").value.trim(),a:r.querySelector(".pa").value.trim()})).filter(p=>p.a);
+  const g=$("cG").value, sched=g==="weekly"||g==="biweekly";
+  const day=sched&&$("cDay").value!==""?+$("cDay").value:null;
+  if(sched&&day==null&&$("cStart").value===""){/* allowed: no day means no auto-fill */}
+  let start=null; if(sched&&day!=null){start=$("cStart").value?mondayOf(dParse($("cStart").value)):THIS_WEEK;}
+  const base=editingClient||{id:"c-"+uid(),added:Date.now()};
+  const c={...base,n,co:$("cCo").value.trim()||null,ph:$("cPh").value.trim()?fmtPhone($("cPh").value):null,em:em||null,g,props,day,start,svc:$("cSvc").value.trim(),price:num($("cPrice").value),notes:$("cNotes").value.trim()};
+  S.clients=S.clients.filter(x=>x.id!==c.id).concat(c);
+  const wasEdit=!!editingClient; closeClientForm(); resetAutoJobs(c.id);
+  // keep names on this client's open jobs in step
+  if(wasEdit)S.jobs.forEach(j=>{if(j.clientId===c.id&&!j.done){j.name=c.n;}});
+  save("clients","jobs"); cFilter="all"; syncChips("cfilters","f","all"); $("csearch").value="";
+  renderClients(); renderJobs(); toast(`${c.n} ${wasEdit?"updated":"added"}${c.day!=null?" · on "+FULL[c.day]+"s":""}`);
+}
+async function deleteClient(id){
+  const c=clientById(id); if(!c)return; if(!await ask(`Delete ${c.n} from your client list? Their upcoming auto-filled jobs are removed too.`,"Delete"))return;
+  c.deleted=true; resetAutoJobs(id); save("clients","jobs"); renderClients(); renderJobs(); lastAction={type:"clientRemoved",cid:id}; toast(`${c.n} deleted`,true);
+}
+$("cOpen").addEventListener("click",()=>openClientForm());
+$("cCancel").addEventListener("click",closeClientForm);
+$("cSave").addEventListener("click",saveClient);
+$("cG").addEventListener("change",syncSchedFields);
+$("cAddProp").addEventListener("click",()=>{$("cProps").insertAdjacentHTML("beforeend",propRow());const r=$("cProps").querySelectorAll(".pa");r[r.length-1].focus();});
+$("cProps").addEventListener("click",e=>{if(!e.target.closest(".prm"))return;const rows=$("cProps").querySelectorAll(".prow");
+  if(rows.length>1)e.target.closest(".prow").remove();else{rows[0].querySelector(".pl").value="";rows[0].querySelector(".pa").value="";}});
+$("clist").addEventListener("click",e=>{const ed=e.target.closest(".cedit"),del=e.target.closest(".cdel");
+  if(ed)openClientForm(clientById(ed.dataset.cid)); if(del)deleteClient(del.dataset.cid);});
+$("csearch").addEventListener("input",renderClients);
+$("cfilters").addEventListener("click",e=>{const b=e.target.closest("[data-f]");if(!b)return;cFilter=b.dataset.f;syncChips("cfilters","f",cFilter);renderClients();});
+function syncChips(box,attr,val){document.querySelectorAll(`#${box} [data-${attr}]`).forEach(x=>x.setAttribute("aria-pressed",x.dataset[attr]===val));}
+
+/* ===================== books ===================== */
+const INCOME_CATS=["Mowing","Add-on service","Cleanup","Landscaping","Other income"];
+const EXPENSE_CATS=["Fuel","Equipment","Repairs & maintenance","Supplies","Insurance","Marketing","Dump fees","Vehicle","Software & phone","Other expense"];
+let bPeriod="week", bOffset=0, eType="income";
+function periodRange(){
+  const now=new Date(); now.setHours(0,0,0,0);
+  if(bPeriod==="week"){const start=dParse(shiftWeek(THIS_WEEK,bOffset)), end=dayDate(dKey(start),6);
+    return {start,end,label:(bOffset===0?"This week · ":"")+`${MON[start.getMonth()]} ${start.getDate()} – ${MON[end.getMonth()]} ${end.getDate()}`,goal:+S.settings.goalWeek||0};}
+  if(bPeriod==="month"){const start=new Date(now.getFullYear(),now.getMonth()+bOffset,1), end=new Date(start.getFullYear(),start.getMonth()+1,0);
+    return {start,end,label:`${MONTH[start.getMonth()]} ${start.getFullYear()}`,goal:+S.settings.goalMonth||0};}
+  const y=now.getFullYear()+bOffset; return {start:new Date(y,0,1),end:new Date(y,11,31),label:String(y),goal:(+S.settings.goalMonth||0)*12};
+}
+function periodItems(){const {start,end}=periodRange(),a=dKey(start),b=dKey(end);
+  return S.ledger.filter(e=>e.date>=a&&e.date<=b).sort((x,y)=>y.date.localeCompare(x.date)||(y.created-x.created));}
+function renderBooks(){
+  const {label,goal}=periodRange(), items=periodItems();
+  const inc=items.filter(e=>e.type==="income").reduce((s,e)=>s+e.amount,0), out=items.filter(e=>e.type==="expense").reduce((s,e)=>s+e.amount,0), net=inc-out;
+  $("blabel").textContent=label; $("sIn").textContent=money(inc); $("sOut").textContent=money(out); $("sNet").textContent=(net<0?"−":"")+money(net);
+  const g=goal||1; $("goalLabel").textContent=goal?`Earned toward ${money(goal)} ${bPeriod==="week"?"weekly":bPeriod==="month"?"monthly":"yearly"} goal`:"Set a goal in Settings";
+  $("goalPct").textContent=goal?Math.round(inc/g*100)+"%":""; $("goalBar").style.width=(goal?Math.max(0,Math.min(100,inc/g*100)):0)+"%";
+  $("taxPctTxt").textContent=S.settings.taxPct; $("sTax").textContent=money(Math.max(0,net)*(+S.settings.taxPct||0)/100);
+  const unpaid=S.invoices.filter(i=>i.status!=="paid"); $("owedBtn").hidden=!unpaid.length;
+  $("owedTxt").textContent=`Owed to you · ${unpaid.length} unpaid invoice${unpaid.length===1?"":"s"}`; $("owedAmt").textContent=money(unpaid.reduce((a,i)=>a+invTotal(i),0));
+  const byCat={}; items.filter(e=>e.type==="expense").forEach(e=>byCat[e.cat]=(byCat[e.cat]||0)+e.amount);
+  const rows=Object.entries(byCat).sort((x,y)=>y[1]-x[1]);
+  $("bcats").innerHTML=rows.length?`<h2>Where the money went</h2>`+rows.map(([c,v])=>`<div class="catrow"><span>${esc(c)}</span><div class="bar"><i style="width:${v/rows[0][1]*100}%"></i></div><b>${money(v)}</b></div>`).join(""):"";
+  const row=e=>`<li class="entry" data-id="${esc(e.id)}"><div class="info"><div class="name">${esc(e.note||e.cat)}</div><div class="detail">${fmtShort(e.date)} · ${esc(e.cat)}</div></div>
+    <span class="amt${e.type==="expense"?" out":""}">${e.type==="expense"?"−":"+"}${money(e.amount)}</span><button class="x" aria-label="Delete entry">×</button></li>`;
+  const ins=items.filter(e=>e.type==="income"), outs=items.filter(e=>e.type==="expense");
+  $("cIn").textContent=money(inc); $("cOut").textContent=money(out);
+  $("listIn").innerHTML=ins.length?ins.map(row).join(""):`<li class="empty">No earnings this ${bPeriod}.</li>`;
+  $("listOut").innerHTML=outs.length?outs.map(row).join(""):`<li class="empty">No expenses this ${bPeriod}.</li>`;
+}
+function renderCats(){$("eCat").innerHTML=(eType==="income"?INCOME_CATS:EXPENSE_CATS).map(c=>`<option>${c}</option>`).join("");}
+function addEntry(){const amount=num($("eAmt").value);if(!amount){$("eAmt").focus();return;}
+  const e={id:uid(),type:eType,amount:r2(amount),date:$("eDate").value||todayKey(),cat:$("eCat").value,note:$("eNote").value.trim(),created:Date.now()};
+  S.ledger.push(e); $("eAmt").value=""; $("eNote").value=""; save("ledger"); renderBooks(); lastAction={type:"entryAdded",eid:e.id};
+  toast(`${e.type==="income"?"Earning":"Expense"} of ${money(e.amount)} added`,true);}
+function logJobIncome(j){const total=jobTotal(j);if(!total)return;const extras=(j.extras||[]).map(x=>x.s).filter(Boolean);
+  const id="job-"+j.id; if(S.ledger.some(x=>x.id===id))return;
+  S.ledger.push({id,type:"income",amount:r2(total),date:todayKey(),cat:extras.length?"Add-on service":"Mowing",note:j.name+(extras.length?" + "+extras.join(", "):""),created:Date.now(),jobId:j.id});
+  save("ledger"); renderBooks();}
+function unlogJobIncome(jobId){const id="job-"+jobId;if(!S.ledger.some(x=>x.id===id))return;S.ledger=S.ledger.filter(x=>x.id!==id);save("ledger");renderBooks();}
+function exportCsv(){const items=periodItems();if(!items.length){toast("Nothing to export for this period");return;}
+  const q=s=>`"${String(s==null?"":s).replace(/"/g,'""')}"`;
+  const csv=["Date,Type,Category,Note,Amount",...items.slice().reverse().map(e=>[e.date,e.type==="income"?"Earning":"Expense",q(e.cat),q(e.note),(e.type==="expense"?-1:1)*e.amount].join(","))].join("\n");
+  shareFile(new Blob([csv],{type:"text/csv"}),`Lawn Bobs books ${$("blabel").textContent.replace(/[^\w\s-]/g,"").trim()}.csv`,"text/csv");}
+$("bperiod").addEventListener("click",e=>{const b=e.target.closest("[data-p]");if(!b)return;bPeriod=b.dataset.p;bOffset=0;syncChips("bperiod","p",bPeriod);renderBooks();});
+$("bprev").addEventListener("click",()=>{bOffset--;renderBooks();});
+$("bnext").addEventListener("click",()=>{bOffset++;renderBooks();});
+$("etype").addEventListener("click",e=>{const b=e.target.closest("[data-t]");if(!b)return;eType=b.dataset.t;syncChips("etype","t",eType);renderCats();});
+$("eAdd").addEventListener("click",addEntry);
+["eAmt","eNote"].forEach(id=>$(id).addEventListener("keydown",e=>{if(e.key==="Enter")addEntry();}));
+$("listIn").parentElement.parentElement.addEventListener("click",async e=>{const li=e.target.closest(".entry");if(!li||!e.target.closest(".x"))return;
+  const en=S.ledger.find(x=>x.id===li.dataset.id);if(!en)return;S.ledger=S.ledger.filter(x=>x.id!==en.id);save("ledger");renderBooks();lastAction={type:"entryRemoved",entry:en};toast("Entry deleted",true);});
+$("owedBtn").addEventListener("click",()=>{iFilter="unpaid";syncChips("ifilters","i",iFilter);showTab("invoices");});
+$("exportCsv").addEventListener("click",exportCsv);
+
+/* ===================== line items (quotes & invoices) ===================== */
+function itemRow(s="",p="",jobId=""){return `<div class="qrow"${jobId?` data-job="${esc(jobId)}"`:""}><input class="qs" list="svcList" placeholder="Service" aria-label="Service" value="${esc(s)}" maxlength="100"><input class="qp" inputmode="decimal" placeholder="$" aria-label="Price" value="${p===""?"":esc(String(p))}" maxlength="9"><button class="x qrm" type="button" aria-label="Remove line">×</button></div>`;}
+function formItems(box){return [...$(box).querySelectorAll(".qrow")].map(r=>{const it={s:r.querySelector(".qs").value.trim(),p:num(r.querySelector(".qp").value)};if(r.dataset.job)it.jobId=r.dataset.job;return it;}).filter(i=>i.s||i.p);}
+function wireItems(box,addBtn,totalEl){
+  $(addBtn).addEventListener("click",()=>{$(box).insertAdjacentHTML("beforeend",itemRow());const r=$(box).querySelectorAll(".qs");r[r.length-1].focus();});
+  $(box).addEventListener("input",()=>{$(totalEl).textContent=money(formItems(box).reduce((a,i)=>a+i.p,0));});
+  $(box).addEventListener("click",e=>{if(!e.target.closest(".qrm"))return;const rows=$(box).querySelectorAll(".qrow");
+    if(rows.length>1)e.target.closest(".qrow").remove();else{rows[0].querySelector(".qs").value="";rows[0].querySelector(".qp").value="";delete rows[0].dataset.job;}
+    $(totalEl).textContent=money(formItems(box).reduce((a,i)=>a+i.p,0));if(box==="iItems")syncJobChecks();});}
+function payMethods(){const s=S.settings,m=[`Cash or check${s.payable?` (payable to ${s.payable})`:""}`];
+  if(s.venmo)m.push(`Venmo ${s.venmo.startsWith("@")?s.venmo:"@"+s.venmo}`);
+  if(s.cashapp)m.push(`Cash App ${s.cashapp.startsWith("$")?s.cashapp:"$"+s.cashapp}`);
+  if(s.zelle)m.push(`Zelle ${s.zelle}`);return m;}
+
+/* ===================== quotes ===================== */
+let qFilter="open", editingQuote=null, acceptingQ=null;
+const ST={draft:"Draft",sent:"Sent",accepted:"Accepted",declined:"Declined"};
+const FREQ={once:"One-time job",weekly:"Weekly service",biweekly:"Bi-weekly service"};
+const qTotal=q=>(q.items||[]).reduce((a,i)=>a+(+i.p||0),0);
+function openQuoteForm(q){
+  editingQuote=q||null; $("qFormTitle").textContent=q?`Edit quote #${q.no}`:"New quote";
+  $("qClient").value=q?q.client:""; $("qPh").value=q&&q.ph||""; $("qEm").value=q&&q.em||""; $("qAddr").value=q&&q.addr||"";
+  $("qFreq").value=q?q.freq:"once"; $("qValid").value=q&&q.valid||addDays(30); $("qNotes").value=q&&q.notes||"";
+  $("qItems").innerHTML=(q&&q.items.length?q.items:[{s:"",p:""}]).map(i=>itemRow(i.s,i.p)).join(""); $("qTotal").textContent=money(q?qTotal(q):0);
+  $("qErr").textContent=""; $("qForm").hidden=false; $("qOpen").hidden=true; window.scrollTo({top:$("qForm").offsetTop-20,behavior:"smooth"});
+}
+function closeQuoteForm(){$("qForm").hidden=true;$("qOpen").hidden=false;editingQuote=null;}
+function saveQuote(){
+  const client=$("qClient").value.trim(); if(!client){$("qErr").textContent="Add the client's name.";$("qClient").focus();return;}
+  const items=formItems("qItems").filter(i=>i.s); if(!items.length){$("qErr").textContent="Add at least one service line.";return;}
+  const em=$("qEm").value.trim(); if(!okEmail(em)){$("qErr").textContent="That email doesn't look right.";$("qEm").focus();return;}
+  let base=editingQuote; if(!base){base={id:"q-"+uid(),no:S.settings.nextQuote||1001,status:"draft",created:Date.now(),date:todayKey()};S.settings.nextQuote=(+base.no)+1;}
+  const q={...base,client,ph:$("qPh").value.trim()?fmtPhone($("qPh").value):"",em,addr:$("qAddr").value.trim(),freq:$("qFreq").value,valid:$("qValid").value,notes:$("qNotes").value.trim(),items};
+  S.quotes=S.quotes.filter(x=>x.id!==q.id).concat(q); const wasEdit=!!editingQuote; closeQuoteForm();
+  if(!wasEdit){qFilter="open";syncChips("qfilters","q",qFilter);} save("quotes","settings"); renderQuotes(); toast(`Quote #${q.no} ${wasEdit?"updated":"saved"}`);
+}
+function renderQuotes(){
+  const open=q=>q.status==="draft"||q.status==="sent";
+  const list=S.quotes.filter(q=>qFilter==="all"||(qFilter==="open"?open(q):q.status===qFilter)).sort((a,b)=>b.no-a.no);
+  const acc=S.quotes.filter(q=>q.status==="accepted").length, decided=S.quotes.filter(q=>q.status==="accepted"||q.status==="declined").length;
+  $("qsum").textContent=`${S.quotes.filter(open).length} open · ${money(S.quotes.filter(open).reduce((a,q)=>a+qTotal(q),0))} pending`+(decided?` · ${Math.round(acc/decided*100)}% close rate`:"");
+  $("qlist").innerHTML=list.length?list.map(q=>`<li class="quote" data-qid="${q.id}">
+      <div class="top"><div><div class="qn">${esc(q.client)}</div><div class="qmeta">#${q.no} · ${FREQ[q.freq]||""}${q.addr?` · ${esc(q.addr)}`:""}</div></div>
+        <div><div class="qamt">${money(qTotal(q))}<span class="qmeta">${q.freq!=="once"?" / visit":""}</span></div><div style="text-align:right;margin-top:4px"><span class="badge st-${q.status}">${ST[q.status]}</span></div></div></div>
+      <ul class="qlines">${q.items.map(i=>`<li><span>${esc(i.s)}</span><span>${money(i.p)}</span></li>`).join("")}</ul>
+      <div class="acts"><button class="btn qsend">Send estimate</button>
+        ${q.status!=="accepted"?`<button class="link qacc">Accept → add job</button>`:""}
+        ${open(q)?`<button class="link qdec">Declined</button>`:""}${q.status==="declined"?`<button class="link qreopen">Reopen</button>`:""}
+        <button class="link qedit">Edit</button><button class="link danger qdel">Delete</button></div>
+      ${acceptingQ===q.id?`<div class="panel" style="margin-top:10px"><span class="flabel">Add to Weekly Jobs on which day?</span>
+        <span class="mvlabel">This week · ${weekRange(THIS_WEEK)}</span><div class="moverow">${dayGrid(THIS_WEEK,null,"qday")}</div>
+        <span class="mvlabel">Next week · ${weekRange(shiftWeek(THIS_WEEK,1))}</span><div class="moverow">${dayGrid(shiftWeek(THIS_WEEK,1),null,"qday")}</div>
+        ${q.freq!=="once"?`<p class="csum" style="margin:0">Tip: to make this recurring, add ${esc(q.client)} as a ${q.freq==="weekly"?"weekly":"bi-weekly"} client with a route day.</p>`:""}</div>`:""}
+    </li>`).join(""):`<li class="empty">${qFilter==="open"?"No open quotes. Tap + New quote to write one.":"Nothing here yet."}</li>`;
+}
+function acceptQuote(q,day,week){
+  const c=clientByName(q.client);
+  const j={id:"qj-"+uid(),clientId:c?c.id:null,name:q.client,addr:q.addr,detail:q.items.map(i=>i.s).join(", "),note:"",price:qTotal(q),extras:[],day,week,created:Date.now(),done:false,quoteId:q.id};
+  S.jobs.push(j); q.status="accepted"; q.jobId=j.id; q.acceptedAt=Date.now(); acceptingQ=null;
+  save("jobs","quotes"); renderJobs(); renderQuotes(); lastAction={type:"quoteAccepted",qid:q.id,jobId:j.id}; toast(`${q.client} added to ${shortDay(week,day)}`,true);
+}
+$("qOpen").addEventListener("click",()=>openQuoteForm());
+$("qCancel").addEventListener("click",closeQuoteForm);
+$("qSave").addEventListener("click",saveQuote);
+wireItems("qItems","qAddItem","qTotal");
+$("qClient").addEventListener("change",()=>{const c=clientByName($("qClient").value);if(!c)return;
+  if(!$("qPh").value)$("qPh").value=c.ph||""; if(!$("qEm").value)$("qEm").value=c.em||""; if(!$("qAddr").value)$("qAddr").value=primaryAddr(c);});
+$("qfilters").addEventListener("click",e=>{const b=e.target.closest("[data-q]");if(!b)return;qFilter=b.dataset.q;syncChips("qfilters","q",qFilter);renderQuotes();});
+$("qlist").addEventListener("click",async e=>{
+  const li=e.target.closest(".quote"); if(!li)return; const q=S.quotes.find(x=>x.id===li.dataset.qid); if(!q)return; const t=e.target;
+  if(t.closest(".qsend"))openSend("quote",q);
+  else if(t.closest(".qacc")){acceptingQ=acceptingQ===q.id?null:q.id;renderQuotes();}
+  else if(t.closest(".qday")){const b=t.closest(".qday");acceptQuote(q,+b.dataset.day,b.dataset.wk);}
+  else if(t.closest(".qdec")){q.status="declined";save("quotes");renderQuotes();}
+  else if(t.closest(".qreopen")){q.status="sent";save("quotes");renderQuotes();}
+  else if(t.closest(".qedit"))openQuoteForm(q);
+  else if(t.closest(".qdel")){if(!await ask(`Delete quote #${q.no} for ${q.client}?`,"Delete"))return;
+    S.quotes=S.quotes.filter(x=>x.id!==q.id);save("quotes");renderQuotes();lastAction={type:"quoteRemoved",quote:q};toast(`Quote #${q.no} deleted`,true);}
+});
+
+/* ===================== invoices ===================== */
+let iFilter="unpaid", editingInv=null;
+const invTotal=i=>(i.items||[]).reduce((a,x)=>a+(+x.p||0),0);
+function newInvNo(){const n=+S.settings.nextInv||2001;S.settings.nextInv=n+1;save("settings");return n;}
+function jobLines(j){const d=dayDate(j.week,j.day);const when=`${MON[d.getMonth()]} ${d.getDate()}`;
+  return [{s:`${j.detail||"Lawn service"} (${when})`,p:+j.price||0,jobId:j.id},...(j.extras||[]).map(x=>({s:`${x.s} (${when})`,p:+x.p||0,jobId:j.id}))];}
+function invoiceFromJob(jobId){
+  const j=findJob(jobId); if(!j)return; const c=clientOf(j);
+  const inv={id:"i-"+uid(),no:newInvNo(),clientId:c?c.id:null,client:j.name,ph:(c&&c.ph)||"",em:(c&&c.em)||"",addr:jobAddr(j),date:todayKey(),items:jobLines(j),jobIds:[j.id],status:"unpaid",created:Date.now(),notes:""};
+  S.invoices.push(inv); j.invoiceId=inv.id; save("invoices","jobs"); renderJobs(); renderInvoices(); renderBooks(); openSend("invoice",inv);
+}
+const unbilledFor=(cid,name,except)=>S.jobs.filter(j=>j.done&&!j.removed&&(!j.invoiceId||j.invoiceId===except)&&((cid&&j.clientId===cid)||norm(j.name)===norm(name))).sort((a,b)=>(a.week+a.day).localeCompare(b.week+b.day));
+function renderUnbilled(){
+  const name=$("iClient").value.trim(); const c=clientByName(name);
+  const list=name?unbilledFor(c&&c.id,name,editingInv&&editingInv.id):[];
+  $("iJobsWrap").hidden=!list.length;
+  $("iJobs").innerHTML=list.map(j=>`<label><input type="checkbox" data-jid="${j.id}"> ${shortDay(j.week,j.day)} · ${esc(j.detail||"Lawn service")} · ${money(jobTotal(j))}</label>`).join("");
+  syncJobChecks();
+}
+function syncJobChecks(){const inForm=new Set([...$("iItems").querySelectorAll(".qrow[data-job]")].map(r=>r.dataset.job));
+  $("iJobs").querySelectorAll("input[data-jid]").forEach(cb=>cb.checked=inForm.has(cb.dataset.jid));}
+function openInvoiceForm(inv){
+  editingInv=inv||null; $("iFormTitle").textContent=inv?`Edit invoice #${inv.no}`:"New invoice";
+  $("iClient").value=inv?inv.client:""; $("iPh").value=inv&&inv.ph||""; $("iEm").value=inv&&inv.em||""; $("iAddr").value=inv&&inv.addr||"";
+  $("iDate").value=inv&&inv.date||todayKey(); $("iNotes").value=inv&&inv.notes||"";
+  $("iItems").innerHTML=(inv&&inv.items.length?inv.items:[{s:"",p:""}]).map(i=>itemRow(i.s,i.p,i.jobId||"")).join("");
+  $("iTotal").textContent=money(inv?invTotal(inv):0); $("iErr").textContent=""; renderUnbilled();
+  $("iForm").hidden=false; $("iOpen").hidden=true; window.scrollTo({top:$("iForm").offsetTop-20,behavior:"smooth"});
+}
+function closeInvoiceForm(){$("iForm").hidden=true;$("iOpen").hidden=false;editingInv=null;}
+$("iJobs").addEventListener("change",e=>{const cb=e.target.closest("input[data-jid]");if(!cb)return;const j=findJob(cb.dataset.jid);if(!j)return;
+  if(cb.checked){[...$("iItems").querySelectorAll(".qrow")].forEach(r=>{if(!r.querySelector(".qs").value&&!r.querySelector(".qp").value)r.remove();});
+    $("iItems").insertAdjacentHTML("beforeend",jobLines(j).map(l=>itemRow(l.s,l.p,j.id)).join(""));}
+  else{$("iItems").querySelectorAll(`.qrow[data-job="${CSS.escape(j.id)}"]`).forEach(r=>r.remove());if(!$("iItems").querySelector(".qrow"))$("iItems").innerHTML=itemRow();}
+  $("iTotal").textContent=money(formItems("iItems").reduce((a,i)=>a+i.p,0));});
+function saveInvoice(){
+  const client=$("iClient").value.trim(); if(!client){$("iErr").textContent="Add the client's name.";$("iClient").focus();return;}
+  const items=formItems("iItems").filter(i=>i.s||i.p); if(!items.length){$("iErr").textContent="Add at least one line.";return;}
+  const em=$("iEm").value.trim(); if(!okEmail(em)){$("iErr").textContent="That email doesn't look right.";$("iEm").focus();return;}
+  const c=clientByName(client); const base=editingInv||{id:"i-"+uid(),no:newInvNo(),status:"unpaid",created:Date.now()};
+  const jobIds=[...new Set(items.filter(i=>i.jobId).map(i=>i.jobId))];
+  const inv={...base,clientId:c?c.id:null,client,ph:$("iPh").value.trim()?fmtPhone($("iPh").value):"",em,addr:$("iAddr").value.trim(),date:$("iDate").value||todayKey(),items,jobIds,notes:$("iNotes").value.trim()};
+  S.jobs.forEach(j=>{if(j.invoiceId===inv.id&&!jobIds.includes(j.id))delete j.invoiceId;if(jobIds.includes(j.id))j.invoiceId=inv.id;});
+  S.invoices=S.invoices.filter(x=>x.id!==inv.id).concat(inv); const wasEdit=!!editingInv; closeInvoiceForm();
+  if(inv.status==="paid")syncPaidIncome(inv);
+  save("invoices","jobs"); renderInvoices(); renderJobs(); renderBooks(); toast(`Invoice #${inv.no} ${wasEdit?"updated":"saved"}`);
+  if(!wasEdit)openSend("invoice",inv);
+}
+function renderInvoices(){
+  const list=S.invoices.filter(i=>iFilter==="all"||(iFilter==="paid"?i.status==="paid":i.status!=="paid")).sort((a,b)=>b.no-a.no);
+  const unpaid=S.invoices.filter(i=>i.status!=="paid");
+  $("isum").textContent=`${unpaid.length} unpaid · ${money(unpaid.reduce((a,i)=>a+invTotal(i),0))} owed to you`;
+  $("ilist").innerHTML=list.length?list.map(i=>`<li class="quote" data-iid="${i.id}" id="inv-${i.id}">
+      <div class="top"><div><div class="qn">${esc(i.client)}</div><div class="qmeta">#${i.no} · ${fmtShort(i.date)}${i.addr?` · ${esc(i.addr)}`:""}${i.sent?" · sent":""}</div></div>
+        <div><div class="qamt">${money(invTotal(i))}</div><div style="text-align:right;margin-top:4px">${i.status==="paid"?`<span class="badge paid">Paid${i.method?" · "+esc(i.method):""}</span>`:`<span class="badge unpaid">Unpaid</span>`}</div></div></div>
+      <ul class="qlines">${i.items.map(x=>`<li><span>${esc(x.s)}</span><span>${money(x.p)}</span></li>`).join("")}</ul>
+      <div class="acts"><button class="btn isend">Send</button>
+        ${i.status==="paid"?`<button class="link iunpay">Mark unpaid</button>`:`<button class="btn green ipay">Mark paid</button>`}
+        <button class="link iedit">Edit</button><button class="link danger idel">Delete</button></div></li>`).join("")
+    :`<li class="empty">${iFilter==="unpaid"?"Nothing owed right now. Check off a job, then tap Invoice on it — or tap + New invoice.":"Nothing here yet."}</li>`;
+}
+function scrollToInvoice(id){setTimeout(()=>{const el=$("inv-"+id);if(el)el.scrollIntoView({behavior:"smooth",block:"center"});},60);}
+// earnings from invoice lines that didn't come from a checked-off job get logged when paid
+function syncPaidIncome(inv){const id="inv-"+inv.id;S.ledger=S.ledger.filter(x=>x.id!==id);
+  const extra=(inv.items||[]).filter(x=>!x.jobId).reduce((a,x)=>a+(+x.p||0),0);
+  if(inv.status==="paid"&&extra>0)S.ledger.push({id,type:"income",amount:r2(extra),date:inv.paidDate||todayKey(),cat:"Other income",note:`Invoice #${inv.no} · ${inv.client}`,created:Date.now()});
+  save("ledger");}
+function openPay(inv){
+  openSheet(`<div class="shead"><h3>Mark #${inv.no} paid</h3><button class="link" data-close>Cancel</button></div>
+    <p class="sub">${esc(inv.client)} · ${money(invTotal(inv))}</p>
+    <span class="flabel">How did they pay?</span>
+    <div class="paygrid">${["Cash","Check","Venmo","Cash App","Zelle","Other"].map(m=>`<button data-m="${m}">${m}</button>`).join("")}</div>
+    <label class="flabel" for="payDate">Date paid</label><input id="payDate" type="date" value="${todayKey()}">`,"Mark paid");
+  $("sheet").onclick=e=>{if(e.target.closest("[data-close]")){closeSheet();return;}
+    const b=e.target.closest("[data-m]");if(!b)return;inv.status="paid";inv.method=b.dataset.m;inv.paidAt=Date.now();inv.paidDate=$("payDate").value||todayKey();
+    syncPaidIncome(inv);save("invoices");closeSheet();renderInvoices();renderBooks();renderJobs();lastAction={type:"paid",iid:inv.id};toast(`#${inv.no} paid by ${inv.method}`,true);};
+}
+function setUnpaid(inv){inv.status="unpaid";delete inv.method;delete inv.paidAt;delete inv.paidDate;syncPaidIncome(inv);save("invoices");renderInvoices();renderBooks();renderJobs();}
+$("iOpen").addEventListener("click",()=>openInvoiceForm());
+$("iCancel").addEventListener("click",closeInvoiceForm);
+$("iSave").addEventListener("click",saveInvoice);
+wireItems("iItems","iAddItem","iTotal");
+$("iClient").addEventListener("change",()=>{const c=clientByName($("iClient").value);
+  if(c){if(!$("iPh").value)$("iPh").value=c.ph||"";if(!$("iEm").value)$("iEm").value=c.em||"";if(!$("iAddr").value)$("iAddr").value=primaryAddr(c);}renderUnbilled();});
+$("ifilters").addEventListener("click",e=>{const b=e.target.closest("[data-i]");if(!b)return;iFilter=b.dataset.i;syncChips("ifilters","i",iFilter);renderInvoices();});
+$("ilist").addEventListener("click",async e=>{
+  const li=e.target.closest(".quote"); if(!li)return; const inv=S.invoices.find(x=>x.id===li.dataset.iid); if(!inv)return; const t=e.target;
+  if(t.closest(".isend"))openSend("invoice",inv);
+  else if(t.closest(".ipay"))openPay(inv);
+  else if(t.closest(".iunpay"))setUnpaid(inv);
+  else if(t.closest(".iedit"))openInvoiceForm(inv);
+  else if(t.closest(".idel")){if(!await ask(`Delete invoice #${inv.no} for ${inv.client}?`,"Delete"))return;
+    S.invoices=S.invoices.filter(x=>x.id!==inv.id);S.jobs.forEach(j=>{if(j.invoiceId===inv.id)delete j.invoiceId;});S.ledger=S.ledger.filter(x=>x.id!=="inv-"+inv.id);
+    save("invoices","jobs","ledger");renderInvoices();renderJobs();renderBooks();lastAction={type:"invoiceRemoved",inv};toast(`Invoice #${inv.no} deleted`,true);}
+});
+
+/* ===================== sending (text / email / share PDF) ===================== */
+function docText(kind,d){
+  const s=S.settings, lines=[`Hi ${firstName(d.client)},`,""];
+  if(kind==="invoice"){lines.push(`Here's your invoice from ${s.bizName}.`,`Invoice #${d.no} · ${fmtDate(d.date)}`,"");
+    d.items.forEach(i=>lines.push(`• ${i.s}: ${money(i.p)}`)); lines.push("",`Total due: ${money(invTotal(d))}`,"",`Ways to pay: ${payMethods().join(" · ")}`);}
+  else{lines.push(`Here's your estimate from ${s.bizName}.`,`Estimate #${d.no} · ${FREQ[d.freq]||""}`,"");
+    d.items.forEach(i=>lines.push(`• ${i.s}: ${money(i.p)}`)); lines.push("",`Total${d.freq!=="once"?" per visit":""}: ${money(qTotal(d))}`);
+    if(d.valid)lines.push(`Good until ${fmtDate(d.valid)}.`); lines.push("","Just reply to this message to get on the schedule.");}
+  lines.push("","Thank you!",[s.owner,s.bizName].filter(Boolean).join(", ")+(s.phone?` · ${s.phone}`:""));
+  return lines.join("\n");}
+async function openSend(kind,d){
+  const isInv=kind==="invoice", label=isInv?`invoice #${d.no}`:`estimate #${d.no}`;
+  const jobsWithPhotos=isInv?(d.jobIds||[]).filter(id=>pcount(id)>0):[];
+  const ph=d.ph||((clientByName(d.client)||{}).ph)||"", em=d.em||((clientByName(d.client)||{}).em)||"";
+  const subject=`${S.settings.bizName} ${isInv?"invoice":"estimate"} #${d.no}`;
+  openSheet(`<div class="shead"><h3>Send ${label}</h3><button class="link" data-close>Close</button></div>
+    <p class="sub">${esc(d.client)} · ${money(isInv?invTotal(d):qTotal(d))}</p>
+    <button class="bigbtn" data-how="text" ${ph?"":"disabled"}>${ICON.msg}<span><b>Text message</b><small>${ph?`To ${esc(ph)} — the ${isInv?"invoice":"estimate"} written out in the text`:"No phone number on file"}</small></span></button>
+    <button class="bigbtn" data-how="email">${ICON.mail}<span><b>Email</b><small>${em?`To ${esc(em)}`:"Opens your email app; add their address"} — written out in the email</small></span></button>
+    <button class="bigbtn" data-how="share">${ICON.share}<span><b>Share PDF…</b><small>Attach the PDF in Messages, Gmail, Drive and more</small></span></button>
+    <button class="bigbtn" data-how="save">${ICON.down}<span><b>Save PDF to phone</b><small>Keeps a copy in Downloads</small></span></button>
+    ${jobsWithPhotos.length?`<label class="chk"><input type="checkbox" id="incPhotos" ${S.settings.photosOnInvoice?"checked":""}> Put the job's "after" photos on the PDF</label>`:""}
+    <p class="note">A text from a link can't carry a file. To text the PDF itself, use Share PDF and pick Messages.</p>`,"Send");
+  $("sheet").onclick=async e=>{
+    if(e.target.closest("[data-close]")){closeSheet();return;}
+    const b=e.target.closest("[data-how]"); if(!b||b.disabled)return; const how=b.dataset.how;
+    const markSent=()=>{if(isInv){d.sent=Date.now();save("invoices");renderInvoices();}else if(d.status==="draft"){d.status="sent";d.sentAt=Date.now();save("quotes");renderQuotes();}};
+    if(how==="text"){location.href=smsUrl(ph,docText(kind,d));markSent();return;}
+    if(how==="email"){location.href=`mailto:${encodeURIComponent(em)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(docText(kind,d))}`;markSent();return;}
+    const inc=$("incPhotos")?$("incPhotos").checked:false; if($("incPhotos")){S.settings.photosOnInvoice=inc;save("settings");}
+    const old=b.innerHTML; b.disabled=true; b.querySelector("b").textContent="Building PDF…";
+    try{
+      const blob=isInv?await invoicePdf(d,inc):await estimatePdf(d);
+      const name=`Lawn Bobs ${isInv?"Invoice":"Estimate"} ${d.no} - ${d.client.replace(/[^\w\s-]/g,"").trim()}.pdf`;
+      if(how==="save"){downloadBlob(blob,name);toast("PDF saved");}
+      else{const r=await shareFile(blob,name,"application/pdf",isInv?`Invoice #${d.no} from ${S.settings.bizName}`:`Estimate #${d.no} from ${S.settings.bizName}`);if(r==="downloaded")toast("Sharing isn't available here, so the PDF was saved instead");if(r!=="cancelled")markSent();}
+    }catch(err){toast("Couldn't build the PDF. Try again.");}
+    finally{b.disabled=false;b.innerHTML=old;}
+  };
+}
+
+/* ===================== PDF (drawn on the phone, works offline) ===================== */
+async function fontsReady(){if(!document.fonts)return;try{await Promise.race([Promise.all(['700 20px "Zilla Slab"','400 12px "Work Sans"','600 12px "Work Sans"'].map(f=>document.fonts.load(f))),new Promise(r=>setTimeout(r,1500))]);}catch(e){}}
+function loadImg(src){return new Promise(res=>{const im=new Image();im.onload=()=>res(im);im.onerror=()=>res(null);im.src=src;});}
+function makePdf(pages){ // pages: [{bytes,w,h}] JPEG images, each fills a US Letter page
+  const enc=new TextEncoder(), parts=[], offs=[]; let len=0;
+  const push=x=>{const b=typeof x==="string"?enc.encode(x):x;parts.push(b);len+=b.length;};
+  const obj=(n,fn)=>{offs[n]=len;push(`${n} 0 obj\n`);fn();push("\nendobj\n");};
+  push("%PDF-1.4\n");
+  const n=pages.length, total=3+n*3;
+  obj(1,()=>push("<< /Type /Catalog /Pages 2 0 R >>"));
+  obj(2,()=>push(`<< /Type /Pages /Kids [${pages.map((_,i)=>`${3+i*3} 0 R`).join(" ")}] /Count ${n} >>`));
+  pages.forEach((p,i)=>{const pn=3+i*3, cn=pn+1, im=pn+2, cs="q 612 0 0 792 0 0 cm /Im0 Do Q";
+    obj(pn,()=>push(`<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /XObject << /Im0 ${im} 0 R >> >> /Contents ${cn} 0 R >>`));
+    obj(cn,()=>push(`<< /Length ${cs.length} >>\nstream\n${cs}\nendstream`));
+    obj(im,()=>{push(`<< /Type /XObject /Subtype /Image /Width ${p.w} /Height ${p.h} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ${p.bytes.length} >>\nstream\n`);push(p.bytes);push("\nendstream");});});
+  const xref=len; let x=`xref\n0 ${total}\n0000000000 65535 f \n`;
+  for(let i=1;i<total;i++)x+=String(offs[i]).padStart(10,"0")+" 00000 n \n";
+  push(x+`trailer\n<< /Size ${total} /Root 1 0 R >>\nstartxref\n${xref}\n%%EOF\n`);
+  return new Blob(parts,{type:"application/pdf"});
+}
+async function drawDoc(o){
+  await fontsReady();
+  const K=150/72, W=612, H=792, M=48, G="#1F5130", Y="#F2C230", INK="#17231A", MUT="#5B6B5E", LINE="#DCE5D8";
+  const SANS='"Work Sans", Arial, sans-serif', SLAB='"Zilla Slab", Georgia, serif';
+  const pages=[]; let ctx, y;
+  const font=(sz,wt=400,fam=SANS)=>{ctx.font=`${wt} ${sz}px ${fam}`;};
+  const text=(s,x,yy,{sz=10,wt=400,col=INK,al="left",fam=SANS}={})=>{font(sz,wt,fam);ctx.fillStyle=col;ctx.textAlign=al;ctx.textBaseline="alphabetic";ctx.fillText(String(s),x,yy);};
+  const wrap=(s,maxW,sz=10,wt=400)=>{font(sz,wt);const out=[];String(s||"").split("\n").forEach(par=>{let line="";par.split(/\s+/).forEach(w=>{const t=line?line+" "+w:w;if(ctx.measureText(t).width>maxW&&line){out.push(line);line=w;}else line=t;});out.push(line);});return out;};
+  const rect=(x,yy,w,h,col)=>{ctx.fillStyle=col;ctx.fillRect(x,yy,w,h);};
+  const rrect=(x,yy,w,h,r,col)=>{ctx.fillStyle=col;ctx.beginPath();if(ctx.roundRect)ctx.roundRect(x,yy,w,h,r);else ctx.rect(x,yy,w,h);ctx.fill();};
+  const footer=()=>{rect(0,H-30,W,30,G);text([S.settings.bizName,S.settings.phone,S.settings.email].filter(Boolean).join("   ·   "),W/2,H-11,{sz:9,col:"#fff",al:"center"});};
+  const newPage=()=>{const cv=document.createElement("canvas");cv.width=Math.round(W*K);cv.height=Math.round(H*K);ctx=cv.getContext("2d");ctx.scale(K,K);rect(0,0,W,H,"#fff");pages.push(cv);footer();y=M;};
+  const need=h=>{if(y+h>H-56)newPage();};
+  newPage();
+  // header band
+  rect(0,0,W,118,G); rect(0,118,W,5,Y);
+  const logo=S.settings.logo?await loadImg(S.settings.logo):null;
+  if(logo){const r=Math.min(200/logo.naturalWidth,80/logo.naturalHeight), w=logo.naturalWidth*r, h=logo.naturalHeight*r;
+    rrect(M-8,59-h/2-8,w+16,h+16,8,"#fff"); ctx.drawImage(logo,M,59-h/2,w,h);}
+  else{text("Lawn Bobs",M,62,{sz:34,wt:700,col:"#fff",fam:SLAB});ctx.letterSpacing="4px";text("YARD CARE",M+2,84,{sz:13,wt:600,col:Y});ctx.letterSpacing="0px";}
+  text(o.title,W-M,52,{sz:24,wt:700,col:"#fff",al:"right",fam:SLAB});
+  o.meta.forEach((m,i)=>text(m,W-M,72+i*14,{sz:10,col:"#fff",al:"right"}));
+  // to / from
+  y=160; text(o.toLabel,M,y,{sz:9,wt:600,col:MUT}); text("FROM",W/2+20,y,{sz:9,wt:600,col:MUT}); y+=16;
+  text(o.toName,M,y,{sz:12,wt:600}); text(S.settings.bizName,W/2+20,y,{sz:12,wt:600});
+  const left=o.toLines.filter(Boolean), right=[S.settings.area,S.settings.phone,S.settings.email].filter(Boolean);
+  left.forEach((t,i)=>text(wrap(t,W/2-M-10)[0],M,y+15+i*14)); right.forEach((t,i)=>text(t,W/2+20,y+15+i*14));
+  y+=18+Math.max(left.length,right.length)*14+16;
+  if(o.serviceLine){rrect(M,y,W-2*M,28,6,"#F4F7F1");text(o.serviceLine,M+12,y+18,{sz:10.5,wt:600,col:G});y+=44;}
+  // table
+  const head=()=>{rect(M,y,W-2*M,24,G);text("DESCRIPTION",M+12,y+16,{sz:10,wt:600,col:"#fff"});text("AMOUNT",W-M-12,y+16,{sz:10,wt:600,col:"#fff",al:"right"});y+=24;};
+  head();
+  o.items.forEach((it,i)=>{const lines=wrap(it.s,W-2*M-130,10.5), h=Math.max(26,lines.length*13+13);
+    if(y+h>H-60){newPage();head();}
+    if(i%2)rect(M,y,W-2*M,h,"#F8FAF6");
+    lines.forEach((l,k)=>text(l,M+12,y+17+k*13,{sz:10.5})); text(money(it.p),W-M-12,y+17,{sz:10.5,al:"right"});
+    rect(M,y+h-1,W-2*M,1,LINE); y+=h;});
+  // total
+  need(60); y+=12; rrect(W-M-210,y,210,40,6,Y);
+  text(o.totalLabel,W-M-198,y+25,{sz:11,wt:600}); text(money(o.total),W-M-12,y+26,{sz:16,wt:700,al:"right"});
+  if(o.stamp){ctx.save();ctx.translate(M+90,y+22);ctx.rotate(-0.12);ctx.strokeStyle="#3D8B3D";ctx.lineWidth=3;ctx.strokeRect(-70,-20,140,40);text(o.stamp,0,9,{sz:22,wt:700,col:"#3D8B3D",al:"center",fam:SLAB});ctx.restore();}
+  y+=64;
+  const block=(title,body)=>{if(!body)return;const lines=wrap(body,W-2*M,10);need(lines.length*13+30);
+    text(title,M,y,{sz:9,wt:600,col:MUT});lines.forEach((l,k)=>text(l,M,y+15+k*13,{sz:10}));y+=lines.length*13+30;};
+  (o.blocks||[]).forEach(b=>block(b.t,b.x));
+  if(o.signature){need(70);y+=10;rect(M,y+30,260,1,MUT);rect(M+300,y+30,W-2*M-300,1,MUT);text("Customer acceptance (signature)",M,y+44,{sz:9,col:MUT});text("Date",M+300,y+44,{sz:9,col:MUT});}
+  // photos
+  if(o.photos&&o.photos.length){newPage();text("Job photos",M,y+10,{sz:18,wt:700,col:G,fam:SLAB});y+=30;
+    const cw=(W-2*M-16)/2, ch=cw*0.75; let col=0;
+    for(const p of o.photos){const url=URL.createObjectURL(p.blob);const im=await loadImg(url);URL.revokeObjectURL(url);if(!im)continue;
+      if(y+ch+24>H-56){newPage();col=0;}
+      const x=M+col*(cw+16); rrect(x,y,cw,ch,6,"#EEF2EA");
+      const r=Math.min(cw/im.naturalWidth,ch/im.naturalHeight), w=im.naturalWidth*r, h=im.naturalHeight*r; ctx.drawImage(im,x+(cw-w)/2,y+(ch-h)/2,w,h);
+      text(p.label,x,y+ch+14,{sz:9,col:MUT}); col++; if(col===2){col=0;y+=ch+28;}}
+  }
+  const out=[];
+  for(const cv of pages){const blob=await new Promise(r=>cv.toBlob(r,"image/jpeg",.88));out.push({bytes:new Uint8Array(await blob.arrayBuffer()),w:cv.width,h:cv.height});}
+  return makePdf(out);
+}
+async function estimatePdf(q){
+  return drawDoc({title:"ESTIMATE",meta:[`Estimate #${q.no}`,`Date: ${fmtDate(q.date)}`,q.valid?`Valid until: ${fmtDate(q.valid)}`:""].filter(Boolean),
+    toLabel:"PREPARED FOR",toName:q.client,toLines:[q.addr,q.ph,q.em],serviceLine:`Service: ${FREQ[q.freq]||""}${q.freq!=="once"?"  ·  Price shown is per visit":""}`,
+    items:q.items,totalLabel:q.freq!=="once"?"TOTAL PER VISIT":"TOTAL",total:qTotal(q),blocks:[{t:"NOTES",x:q.notes},{t:"TERMS",x:S.settings.terms}],signature:true});
+}
+async function invoicePdf(inv,withPhotos){
+  let photos=[];
+  if(withPhotos){for(const id of inv.jobIds||[]){const j=findJob(id);const ps=(await photosFor(id)).filter(p=>p.kind==="after").sort((a,b)=>a.created-b.created);
+    ps.forEach(p=>photos.push({blob:p.blob,label:`After · ${j?shortDay(j.week,j.day):""}${j&&jobAddr(j)?" · "+jobAddr(j):""}`}));}}
+  const paid=inv.status==="paid";
+  return drawDoc({title:"INVOICE",meta:[`Invoice #${inv.no}`,`Date: ${fmtDate(inv.date)}`,paid?`Paid ${fmtDate(inv.paidDate)}`:"Due on receipt"],
+    toLabel:"BILL TO",toName:inv.client,toLines:[inv.addr,inv.ph,inv.em],serviceLine:"",items:inv.items,totalLabel:paid?"TOTAL PAID":"TOTAL DUE",total:invTotal(inv),
+    stamp:paid?"PAID":"",blocks:[{t:"NOTES",x:inv.notes},{t:"HOW TO PAY",x:paid?"":payMethods().join("\n")},{t:"TERMS",x:S.settings.invTerms}],photos});
+}
+
+/* ===================== settings, backup & restore ===================== */
+let installEvt=null;
+window.addEventListener("beforeinstallprompt",e=>{e.preventDefault();installEvt=e;renderBanner();});
+window.addEventListener("appinstalled",()=>{installEvt=null;askPersist();renderBanner();});
+const standalone=()=>matchMedia("(display-mode: standalone)").matches||navigator.standalone;
+function applyTheme(){const t=S.settings.theme;if(t==="light"||t==="dark")document.documentElement.dataset.theme=t;else delete document.documentElement.dataset.theme;}
+function backupDue(){const s=S.settings; if(!S.clients.length&&!S.jobs.length)return false; if(Date.now()<(s.snooze||0))return false;
+  if(!s.lastBackup)return true; const last=new Date(s.lastBackup), now=new Date();
+  const fri=dayDate(THIS_WEEK,4); fri.setHours(0,0,0,0);
+  return (now-last)>7*864e5 || (now>=fri && last<fri);}
+function renderBanner(){
+  let h="";
+  if(backupDue())h+=`<div class="banner"><p><b>${todayIdx>=4?"Friday backup time.":"Time for a backup."}</b> ${S.settings.lastBackup?`Last one was ${fmtShort(dKey(new Date(S.settings.lastBackup)))}.`:"You haven't saved one yet."} Save a copy to Google Drive so a lost phone doesn't lose your business.</p>
+    <div class="row"><button class="btn" data-bk="now">Back up now</button><button class="link" data-bk="later">Tomorrow</button></div></div>`;
+  if(installEvt&&!standalone())h+=`<div class="banner"><p><b>Put Lawn Bobs on your home screen.</b> It opens like an app and works without signal.</p><div class="row"><button class="btn" data-bk="install">Install app</button></div></div>`;
+  $("banner").innerHTML=h;
+}
+$("banner").addEventListener("click",async e=>{const b=e.target.closest("[data-bk]");if(!b)return;
+  if(b.dataset.bk==="now")backupNow();
+  if(b.dataset.bk==="later"){const t=new Date();t.setDate(t.getDate()+1);t.setHours(5,0,0,0);S.settings.snooze=+t;save("settings");renderBanner();}
+  if(b.dataset.bk==="install"&&installEvt){installEvt.prompt();try{await installEvt.userChoice;}catch(x){}installEvt=null;renderBanner();}});
+const b64=blob=>new Promise(res=>{const fr=new FileReader();fr.onload=()=>res(String(fr.result).split(",")[1]||"");fr.onerror=()=>res("");fr.readAsDataURL(blob);});
+async function buildBackup(withPhotos){
+  await flush(); const data={}; KEYS.forEach(k=>data[k]=S[k]);
+  const out={app:"lawnbobs",version:1,exported:new Date().toISOString(),data,photos:[]};
+  if(withPhotos){for(const p of await photosAll())out.photos.push({id:p.id,jobId:p.jobId,kind:p.kind,created:p.created,jpeg:await b64(p.blob)});}
+  return new Blob([JSON.stringify(out)],{type:"application/json"});
+}
+async function backupNow(){
+  toast("Preparing backup…");
+  try{const blob=await buildBackup(S.settings.backupPhotos!==false);
+    const r=await shareFile(blob,`LawnBobs-backup-${todayKey()}.json`,"application/json","Lawn Bobs backup");
+    if(r==="cancelled"){toast("Backup cancelled");return;}
+    S.settings.lastBackup=Date.now(); S.settings.snooze=0; save("settings"); renderBanner();
+    toast(r==="shared"?"Backup saved — keep it in Google Drive":"Backup saved to Downloads");
+    if(!$("sheetBg").hidden&&$("setLast"))$("setLast").textContent="Last backup: today";
+  }catch(e){toast("Backup didn't work. Try again.");}
+}
+async function restoreFile(file){
+  let j; try{j=JSON.parse(await file.text());}catch(e){toast("That file isn't a Lawn Bobs backup");return;}
+  if(!j||j.app!=="lawnbobs"||!j.data){toast("That file isn't a Lawn Bobs backup");return;}
+  const has=S.clients.length||S.jobs.length||S.ledger.length;
+  const d=j.data, summary=`${(d.clients||[]).filter(c=>!c.deleted).length} clients, ${(d.jobs||[]).length} jobs, ${(d.ledger||[]).length} book entries, ${(d.quotes||[]).length} quotes, ${(d.invoices||[]).length} invoices${j.photos&&j.photos.length?`, ${j.photos.length} photos`:""}`;
+  if(!await ask(has?`Replace everything in the app with this file? (${summary}) Anything not in the file will be gone.`:`Import ${summary}?`,has?"Replace":"Import"))return;
+  KEYS.forEach(k=>{if(k==="settings")S.settings={...DEF_SETTINGS,...(d.settings||{})};else S[k]=Array.isArray(d[k])?d[k]:[];});
+  await photosClear(); memPhotos.clear();
+  for(const p of j.photos||[]){try{const bin=atob(p.jpeg);const u=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)u[i]=bin.charCodeAt(i);
+    await photoPut({id:p.id,jobId:p.jobId,kind:p.kind,created:p.created,blob:new Blob([u],{type:"image/jpeg"})});}catch(e){}}
+  KEYS.forEach(k=>dirty.add(k)); await flush(); askPersist(); await refreshPhotoCounts(); applyTheme();
+  closeSheet(); viewWeek=THIS_WEEK; filter=todayIdx; renderAll(); toast("All set — your data is in");
+}
+$("restoreInput").addEventListener("change",e=>{const f=e.target.files[0];e.target.value="";if(f)restoreFile(f);});
+async function storageText(){try{if(!navigator.storage||!navigator.storage.estimate)return "";const e=await navigator.storage.estimate();const p=navigator.storage.persisted?await navigator.storage.persisted():false;
+  return `Using ${(e.usage/1048576).toFixed(1)} MB on this phone. ${p?"Protected from automatic cleanup.":"Install the app to protect it from automatic cleanup."}`;}catch(e){return "";}}
+async function openSettings(){
+  const s=S.settings, f=(id,label,val,attrs="")=>`<label class="flabel" for="${id}">${label}</label><input id="${id}" value="${esc(val)}" ${attrs}>`;
+  openSheet(`<div class="shead"><h3>Settings</h3><button class="btn" id="setSave">Save</button></div>
+    <span class="sec">Business</span>
+    <div class="grid2"><div>${f("sOwner","Your first name",s.owner,'maxlength="30"')}</div><div>${f("sBiz","Business name",s.bizName,'maxlength="60"')}</div></div>
+    <div class="grid2"><div>${f("sPhone","Business phone",s.phone,'type="tel" maxlength="20"')}</div><div>${f("sEmail","Business email",s.email,'type="email" maxlength="100"')}</div></div>
+    ${f("sArea","Service area (on PDFs)",s.area,'maxlength="60"')}
+    <span class="flabel">Logo on estimates & invoices</span>
+    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap"><div class="logoprev" id="logoPrev">${s.logo?`<img src="${s.logo}" alt="Logo">`:"No logo"}</div>
+      <button class="link" id="logoPick" type="button">Change logo</button>${s.logo?`<button class="link danger" id="logoClear" type="button">Remove</button>`:""}</div>
+    <span class="sec">How clients pay you</span>
+    ${f("sPayable","Checks payable to",s.payable,'maxlength="60"')}
+    <div class="grid2"><div>${f("sVenmo","Venmo",s.venmo,'placeholder="@YourName" maxlength="40"')}</div><div>${f("sCash","Cash App",s.cashapp,'placeholder="$YourTag" maxlength="40"')}</div></div>
+    ${f("sZelle","Zelle (phone or email)",s.zelle,'maxlength="60"')}
+    <span class="sec">"On my way" text</span>
+    <textarea id="sOtw" rows="3" maxlength="300" aria-label="On my way message">${esc(s.otw)}</textarea>
+    <p class="note">{first} becomes the client's first name, {me} becomes your name.</p>
+    <span class="sec">Estimates & invoices</span>
+    <label class="flabel" for="sTerms">Estimate terms</label><textarea id="sTerms" rows="3" maxlength="500">${esc(s.terms)}</textarea>
+    <label class="flabel" for="sInvTerms">Invoice terms</label><textarea id="sInvTerms" rows="2" maxlength="500">${esc(s.invTerms)}</textarea>
+    <div class="grid2"><div>${f("sNextInv","Next invoice #",s.nextInv,'inputmode="numeric" maxlength="7"')}</div><div>${f("sNextQ","Next estimate #",s.nextQuote,'inputmode="numeric" maxlength="7"')}</div></div>
+    <span class="sec">Money</span>
+    <div class="grid2"><div>${f("sGoalW","Weekly goal $",s.goalWeek,'inputmode="decimal" maxlength="8"')}</div><div>${f("sGoalM","Monthly goal $",s.goalMonth,'inputmode="decimal" maxlength="8"')}</div></div>
+    ${f("sTaxPct","Set aside for taxes (%)",s.taxPct,'inputmode="decimal" maxlength="4"')}
+    <span class="sec">Backup</span>
+    <p class="note" id="setLast">${s.lastBackup?`Last backup: ${fmtDate(dKey(new Date(s.lastBackup)))}`:"No backup yet."} Everything lives only on this phone, so keep a recent backup in Google Drive.</p>
+    <label class="chk"><input type="checkbox" id="sBkPhotos" ${s.backupPhotos!==false?"checked":""}> Include photos in backups (bigger file)</label>
+    <button class="bigbtn" id="setBackup">${ICON.down}<span><b>Back up now</b><small>Save a file to Google Drive or your phone</small></span></button>
+    <button class="bigbtn" id="setRestore">${ICON.share}<span><b>Restore or import from a file</b><small>Use a backup or your LawnBobs-import file</small></span></button>
+    <span class="sec">App</span>
+    <label class="flabel" for="sTheme">Look</label>
+    <select id="sTheme"><option value="auto">Match my phone</option><option value="light">Always light (best in sun)</option><option value="dark">Always dark</option></select>
+    ${installEvt&&!standalone()?`<button class="btn green wide" id="setInstall">Install on home screen</button>`:""}
+    <p class="note" id="storeTxt"></p>
+    <p class="note">Lawn Bobs app v1 · works offline</p>`,"Settings");
+  $("sTheme").value=s.theme||"auto";
+  storageText().then(t=>{if($("storeTxt"))$("storeTxt").textContent=t;});
+  $("sheet").onclick=async e=>{
+    const t=e.target;
+    if(t.closest("#setSave")){saveSettingsForm();return;}
+    if(t.closest("#logoPick")){$("logoInput").click();return;}
+    if(t.closest("#logoClear")){S.settings.logo=null;save("settings");$("logoPrev").innerHTML="No logo";t.closest("#logoClear").remove();return;}
+    if(t.closest("#setBackup")){S.settings.backupPhotos=$("sBkPhotos").checked;save("settings");backupNow();return;}
+    if(t.closest("#setRestore")){$("restoreInput").click();return;}
+    if(t.closest("#setInstall")&&installEvt){installEvt.prompt();installEvt=null;closeSheet();renderBanner();}
+  };
+}
+function saveSettingsForm(){
+  const s=S.settings, v=id=>$(id).value.trim();
+  Object.assign(s,{owner:v("sOwner"),bizName:v("sBiz")||DEF_SETTINGS.bizName,phone:v("sPhone")?fmtPhone(v("sPhone")):"",email:v("sEmail"),area:v("sArea"),
+    payable:v("sPayable"),venmo:v("sVenmo"),cashapp:v("sCash"),zelle:v("sZelle"),otw:v("sOtw")||DEF_SETTINGS.otw,terms:v("sTerms"),invTerms:v("sInvTerms"),
+    goalWeek:num(v("sGoalW")),goalMonth:num(v("sGoalM")),taxPct:Math.min(60,num(v("sTaxPct"))),backupPhotos:$("sBkPhotos").checked,theme:$("sTheme").value});
+  const ni=parseInt(v("sNextInv"),10), nq=parseInt(v("sNextQ"),10); if(ni>0)s.nextInv=ni; if(nq>0)s.nextQuote=nq;
+  save("settings"); applyTheme(); closeSheet(); renderAll(); toast("Settings saved");
+}
+$("logoInput").addEventListener("change",async e=>{const f=e.target.files[0];e.target.value="";if(!f)return;
+  try{const src=await createImageBitmap(f);const s=Math.min(1,600/Math.max(src.width,src.height));const c=document.createElement("canvas");c.width=Math.round(src.width*s);c.height=Math.round(src.height*s);
+    const x=c.getContext("2d");x.fillStyle="#fff";x.fillRect(0,0,c.width,c.height);x.drawImage(src,0,0,c.width,c.height);S.settings.logo=c.toDataURL("image/jpeg",.9);save("settings");
+    if($("logoPrev"))$("logoPrev").innerHTML=`<img src="${S.settings.logo}" alt="Logo">`;toast("Logo saved");}catch(x){toast("Couldn't use that image");}});
+$("openSettings").addEventListener("click",openSettings);
+
+/* ===================== tabs & boot ===================== */
+let curTab="jobs";
+const TABS={jobs:["Jobs",ICON.jobs],clients:["Clients",ICON.clients],quotes:["Quotes",ICON.quote],invoices:["Invoices",ICON.invoice],books:["Books",ICON.books]};
+document.querySelectorAll(".bnav [data-tab]").forEach(b=>{const [l,i]=TABS[b.dataset.tab];b.innerHTML=i+`<span>${l}</span>`;b.addEventListener("click",()=>showTab(b.dataset.tab));});
+$("openSettings").innerHTML=ICON.gear;
+function showTab(t){curTab=t;document.querySelectorAll(".bnav [data-tab]").forEach(b=>b.setAttribute("aria-selected",b.dataset.tab===t));
+  Object.keys(TABS).forEach(k=>$("p-"+k).hidden=k!==t);
+  $("hdrSub").textContent=t==="jobs"?weekMonth(viewWeek):({clients:"Client list",quotes:"Quotes & estimates",invoices:"Invoices",books:"Bookkeeping"})[t];
+  if(t==="clients")renderClients(); if(t==="quotes")renderQuotes(); if(t==="invoices")renderInvoices(); if(t==="books")renderBooks(); if(t==="jobs")renderJobs();
+  window.scrollTo(0,0); try{sessionStorage.setItem("lb-tab",t);}catch(e){}}
+function renderAll(){renderClients();renderJobs();renderQuotes();renderInvoices();renderBooks();renderBanner();}
+function checkDayRollover(){const tw=mondayOf(new Date()), ti=(new Date().getDay()+6)%7;
+  if(tw!==THIS_WEEK||ti!==todayIdx){const wasThis=viewWeek===THIS_WEEK;THIS_WEEK=tw;todayIdx=ti;if(wasThis){viewWeek=tw;filter=ti;}renderAll();}}
+$("eDate").value=todayKey(); renderCats();
+(async()=>{
+  idb=await idbOpen();
+  for(const k of KEYS){try{const v=await kvGet(k);if(k==="settings")S.settings={...DEF_SETTINGS,...(v||{})};else if(Array.isArray(v))S[k]=v;}catch(e){}}
+  applyTheme(); await refreshPhotoCounts();
+  let t="jobs"; try{t=sessionStorage.getItem("lb-tab")||"jobs";}catch(e){} if(!TABS[t])t="jobs";
+  renderAll(); showTab(t);
+  if(!idb)setStatus("This browser can't store data — use Chrome.");
+  if(S.clients.length)askPersist();
+})();
+if("serviceWorker" in navigator&&(location.protocol==="https:"||location.hostname==="localhost")){window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));}
+</script>
+</body>
+</html>
